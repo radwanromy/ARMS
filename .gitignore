@@ -1,0 +1,27 @@
+# Maven build artifacts
+**/target/
+**/*.jar
+**/*.war
+**/*.ear
+
+# Node / Angular dependencies and builds
+**/node_modules/
+**/dist/
+**/.angular/
+
+# IDEs & Editor configs
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# OS files
+Thumbs.db
+Desktop.ini
+
+# Database volumes and log files
+**/mysql_data/
+**/*.log
+temp/
+tmp/
