@@ -14,6 +14,7 @@ import { AuthService } from '../../services/auth.service';
         <div class="nav-links">
           <a class="nav-link" routerLink="/search" routerLinkActive="active">Search Flights</a>
           <a class="nav-link" *ngIf="authService.isLoggedIn()" routerLink="/my-bookings" routerLinkActive="active">My Bookings</a>
+          <a class="nav-link text-accent" href="javascript:void(0)" (click)="openAIVolantSupport($event)" style="font-weight: 700;">AI Volant Support</a>
           <a class="nav-link text-primary" *ngIf="authService.isLoggedIn() && authService.isAdmin()" routerLink="/admin/bookings" routerLinkActive="active">Manage Bookings</a>
           <a class="nav-link text-accent" *ngIf="authService.isLoggedIn() && (authService.getCurrentUser()?.role === 'SUPPORT_AGENT' || authService.isAdmin())" routerLink="/support/dashboard" routerLinkActive="active">Support Center</a>
         </div>
@@ -340,6 +341,11 @@ export class NavbarComponent {
     this.isDropdownOpen = false;
     this.authService.logout();
     this.router.navigate(['/login']);
+  }
+
+  openAIVolantSupport(event: Event): void {
+    event.preventDefault();
+    window.dispatchEvent(new CustomEvent('open-ai-chat', { detail: 'services' }));
   }
 
   @HostListener('document:click', ['$event'])

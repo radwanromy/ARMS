@@ -481,6 +481,15 @@ public class AIBookingService {
 
     private String interceptFAQ(String text) {
         String input = text.toLowerCase();
+        if (input.contains("service") || input.contains("about the company") || input.contains("company details") || input.contains("offer")) {
+            return "✈️ **Volant Airlines Premium Services**:\n\n" +
+                    "1. **Global Flight Booking**: Search, book, and manage tickets to over 150 international destinations with real-time flight data integration.\n" +
+                    "2. **Volant AI Travel Agent**: Our 24/7 smart assistant helps you book flights, update traveler details, select seats, and handle queries in real-time.\n" +
+                    "3. **In-Flight Curated Dining**: Select from standard, vegetarian, halal, kosher, or diabetic meal preferences during booking.\n" +
+                    "4. **Accessibility Support**: Dedicated options for passengers requiring wheelchair access, visual assistance, or hearing support.\n" +
+                    "5. **Secure checkout**: PCI-compliant payment gateway supporting Credit Cards, Apple Pay, and Google Pay.\n\n" +
+                    "*To start booking a flight, simply tell me where you want to fly (e.g. 'I want to fly from Tokyo to Dubai next Monday')!*";
+        }
         if (input.contains("baggage") || input.contains("luggage")) {
             return "🎒 **Baggage Allowance Policy**:\n" +
                     "- **Cabin Baggage**: 1 piece up to 7kg (max dimensions 56 x 36 x 23cm) + 1 small personal item.\n" +

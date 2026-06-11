@@ -633,6 +633,16 @@ export class AIAssistantWidgetComponent implements OnInit, AfterViewChecked {
         this.router.navigateByUrl(targetPath);
       }
     });
+
+    // Register opening listener for AI Volant Support navbar trigger
+    window.addEventListener('open-ai-chat', (event: any) => {
+      this.displayMode = 'window';
+      this.activeTab = 'chat';
+      if (event.detail === 'services') {
+        this.userInput = 'Tell me about Volant Airlines services';
+        this.sendMessage();
+      }
+    });
   }
 
   ngAfterViewChecked() {
