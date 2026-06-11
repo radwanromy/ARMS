@@ -1,111 +1,257 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef, HostListener } from '@angular/core';
 import { ThemeService, ColorTheme } from '../../services/theme.service';
 
 @Component({
   selector: 'app-theme-switcher',
   template: `
-    <div class="theme-switcher glass-panel">
-      <!-- Color Themes -->
+    <div class="theme-switcher-container">
+      <!-- Minimised Trigger Button -->
       <button 
-        class="theme-btn" 
-        [class.active]="currentTheme === 'light'" 
-        (click)="setTheme('light')" 
-        title="Light Theme">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="theme-icon">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
+        class="trigger-btn" 
+        (click)="toggleDropdown($event)" 
+        title="Customize Theme & Density">
+        <span class="active-icon">
+          <span *ngIf="currentTheme === 'light'">☀️</span>
+          <span *ngIf="currentTheme === 'mid'">🌗</span>
+          <span *ngIf="currentTheme === 'dark'">🌙</span>
+        </span>
+        <span class="compact-dot" *ngIf="isCompact" title="Compact density active"></span>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="chevron-icon" [class.rotated]="isDropdownOpen">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
         </svg>
       </button>
 
-      <button 
-        class="theme-btn" 
-        [class.active]="currentTheme === 'mid'" 
-        (click)="setTheme('mid')" 
-        title="Corporate Mid Theme">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="theme-icon">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
-          <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
-        </svg>
-      </button>
+      <!-- Expandable Themes Menu (Dropdown Panel) -->
+      <div class="theme-dropdown glass-panel" *ngIf="isDropdownOpen">
+        <div class="dropdown-header">
+          <span class="title">Visual Themes</span>
+        </div>
+        
+        <div class="theme-options">
+          <!-- Light Theme -->
+          <button 
+            class="option-item" 
+            [class.active]="currentTheme === 'light'" 
+            (click)="setTheme('light')"
+            title="Light Theme">
+            <span class="item-icon">☀️</span>
+            <span class="item-label">Light Theme</span>
+            <span class="check-mark" *ngIf="currentTheme === 'light'">✓</span>
+          </button>
 
-      <button 
-        class="theme-btn" 
-        [class.active]="currentTheme === 'dark'" 
-        (click)="setTheme('dark')" 
-        title="Dark Theme">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="theme-icon">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
-        </svg>
-      </button>
+          <!-- Corporate Mid Theme -->
+          <button 
+            class="option-item" 
+            [class.active]="currentTheme === 'mid'" 
+            (click)="setTheme('mid')"
+            title="Corporate Mid Theme">
+            <span class="item-icon">🌗</span>
+            <span class="item-label">Corporate Mid</span>
+            <span class="check-mark" *ngIf="currentTheme === 'mid'">✓</span>
+          </button>
 
-      <div class="divider"></div>
+          <!-- Dark Theme -->
+          <button 
+            class="option-item" 
+            [class.active]="currentTheme === 'dark'" 
+            (click)="setTheme('dark')"
+            title="Dark Theme">
+            <span class="item-icon">🌙</span>
+            <span class="item-label">Dark Theme</span>
+            <span class="check-mark" *ngIf="currentTheme === 'dark'">✓</span>
+          </button>
+        </div>
 
-      <!-- Compact Mode Toggle -->
-      <button 
-        class="theme-btn compact-toggle" 
-        [class.active]="isCompact" 
-        (click)="toggleCompact()" 
-        title="Compact Density Mode">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="theme-icon">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 5.25h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5" />
-        </svg>
-      </button>
+        <div class="dropdown-divider"></div>
+
+        <!-- Compact Mode Toggle -->
+        <button 
+          class="option-item compact-toggle" 
+          [class.active]="isCompact" 
+          (click)="toggleCompact($event)"
+          title="Toggle Compact Mode">
+          <span class="item-icon">🎛️</span>
+          <span class="item-label">Compact Density</span>
+          <div class="toggle-switch" [class.on]="isCompact">
+            <span class="switch-nob"></span>
+          </div>
+        </button>
+      </div>
     </div>
   `,
   styles: [`
-    .theme-switcher {
-      display: inline-flex;
-      align-items: center;
-      padding: 4px 8px;
-      gap: 6px;
-      border-radius: 50px;
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    .theme-switcher-container {
+      position: relative;
+      display: inline-block;
     }
-    .theme-btn {
-      background: transparent;
-      border: none;
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
+    .trigger-btn {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--glass-border);
+      color: var(--text-primary);
+      width: 65px;
+      height: 38px;
+      border-radius: 20px;
       display: flex;
       align-items: center;
       justify-content: center;
+      gap: 6px;
       cursor: pointer;
-      color: var(--text-secondary);
-      transition: var(--transition-smooth);
       position: relative;
+      transition: var(--transition-smooth);
+      padding: 0 10px;
+      outline: none;
     }
-    .theme-btn:hover {
-      background: rgba(255, 255, 255, 0.15);
+    .trigger-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+    .active-icon {
+      font-size: 1.15rem;
+      display: flex;
+      align-items: center;
+    }
+    .compact-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--accent, #8b5cf6);
+      border-radius: 50%;
+      position: absolute;
+      top: 6px;
+      right: 24px;
+      box-shadow: 0 0 6px var(--accent-glow);
+    }
+    .chevron-icon {
+      width: 12px;
+      height: 12px;
+      color: var(--text-secondary);
+      transition: transform 0.2s ease;
+    }
+    .chevron-icon.rotated {
+      transform: rotate(180deg);
+    }
+
+    /* Dropdown panel */
+    .theme-dropdown {
+      position: absolute;
+      top: calc(100% + 12px);
+      right: 0;
+      width: 200px;
+      padding: 12px;
+      border-radius: 12px;
+      z-index: 1001;
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      animation: dropdownFade 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes dropdownFade {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .dropdown-header {
+      padding: 4px 6px 8px 6px;
+      border-bottom: 1px solid var(--glass-border);
+      margin-bottom: 8px;
+    }
+    .dropdown-header .title {
+      font-family: var(--font-title);
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+    .theme-options {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .option-item {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      background: transparent;
+      border: none;
+      padding: 8px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: var(--transition-fast);
+      color: var(--text-secondary);
+      text-align: left;
+      outline: none;
+    }
+    .option-item:hover {
+      background: rgba(255, 255, 255, 0.05);
       color: var(--text-primary);
     }
-    .theme-btn.active {
-      background: var(--primary);
-      color: #ffffff;
-      box-shadow: 0 2px 8px var(--primary-glow);
+    .option-item.active {
+      background: var(--primary-glow);
+      color: var(--primary);
     }
-    .theme-icon {
-      width: 18px;
-      height: 18px;
+    .item-icon {
+      font-size: 1.1rem;
+      margin-right: 10px;
+      display: flex;
+      align-items: center;
+      width: 20px;
+      justify-content: center;
     }
-    .divider {
-      width: 1px;
-      height: 20px;
+    .item-label {
+      flex: 1;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .check-mark {
+      font-size: 0.85rem;
+      font-weight: bold;
+      color: var(--primary);
+    }
+    .dropdown-divider {
+      height: 1px;
       background: var(--glass-border);
-      margin: 0 4px;
+      margin: 8px 0;
     }
-    .compact-toggle.active {
+    
+    /* Toggle switch styling */
+    .toggle-switch {
+      width: 32px;
+      height: 18px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid var(--glass-border);
+      position: relative;
+      transition: background 0.2s ease;
+    }
+    .toggle-switch.on {
       background: var(--accent, #8b5cf6);
-      box-shadow: 0 2px 8px var(--accent-glow);
+      border-color: transparent;
+    }
+    .switch-nob {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #ffffff;
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.2s ease;
+    }
+    .toggle-switch.on .switch-nob {
+      transform: translateX(14px);
     }
   `]
 })
 export class ThemeSwitcherComponent {
   currentTheme: ColorTheme = 'light';
   isCompact = false;
+  isDropdownOpen = false;
 
-  constructor(private themeService: ThemeService) {
+  constructor(
+    private themeService: ThemeService,
+    private eRef: ElementRef
+  ) {
     this.themeService.activeTheme$.subscribe(theme => {
       this.currentTheme = theme;
     });
@@ -114,11 +260,24 @@ export class ThemeSwitcherComponent {
     });
   }
 
+  toggleDropdown(event: Event): void {
+    event.stopPropagation();
+    this.isDropdownOpen = !this.isDropdownOpen;
+  }
+
   setTheme(theme: ColorTheme): void {
     this.themeService.setColorTheme(theme);
   }
 
-  toggleCompact(): void {
+  toggleCompact(event: Event): void {
+    event.stopPropagation();
     this.themeService.setCompactMode(!this.isCompact);
+  }
+
+  @HostListener('document:click', ['$event'])
+  clickout(event: any) {
+    if (!this.eRef.nativeElement.contains(event.target)) {
+      this.isDropdownOpen = false;
+    }
   }
 }
