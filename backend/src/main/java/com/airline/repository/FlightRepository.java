@@ -19,4 +19,13 @@ public interface FlightRepository extends JpaRepository<Flight, Long> {
     @Query("SELECT f FROM Flight f WHERE (f.availableEconomySeats > 0 OR f.availableBusinessSeats > 0) " +
            "AND f.departureTime > :currentTime")
     List<Flight> findAvailableFlights(@Param("currentTime") LocalDateTime currentTime);
+
+    @Query("SELECT f FROM Flight f WHERE f.origin IN :origins AND f.destination IN :destinations " +
+           "AND f.departureTime BETWEEN :startDate AND :endDate")
+    List<Flight> findByOriginInAndDestinationInAndDepartureTimeBetween(
+        @Param("origins") List<String> origins,
+        @Param("destinations") List<String> destinations,
+        @Param("startDate") LocalDateTime startDate,
+        @Param("endDate") LocalDateTime endDate
+    );
 }

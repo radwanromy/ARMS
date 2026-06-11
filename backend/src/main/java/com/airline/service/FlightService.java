@@ -5,6 +5,7 @@ import com.airline.exception.ResourceNotFoundException;
 import com.airline.model.Flight;
 import com.airline.model.FlightStatus;
 import com.airline.repository.FlightRepository;
+import com.airline.repository.AirportRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -21,6 +22,7 @@ public class FlightService {
 
     private final FlightRepository flightRepository;
     private final MetricsService metricsService;
+    private final AirportRepository airportRepository;
 
     @Transactional
     @CacheEvict(value = "flightSearch", allEntries = true)
@@ -52,8 +54,11 @@ public class FlightService {
         LocalDateTime startOfDay = date.atStartOfDay();
         LocalDateTime endOfDay = date.atTime(23, 59, 59);
 
-        List<Flight> flights = flightRepository.findByOriginAndDestinationAndDepartureTimeBetween(
-                origin, destination, startOfDay, endOfDay);
+        List<String> origins = resolveAirportCodes(origin);
+        List<String> destinations = resolveAirportCodes(destination);
+
+        List<Flight> flights = flightRepository.findByOriginInAndDestinationInAndDepartureTimeBetween(
+                origins, destinations, startOfDay, endOfDay);
 
         // Filter by seat availability depending on class selection
         if ("ECONOMY".equalsIgnoreCase(seatClass)) {
@@ -108,5 +113,27 @@ public class FlightService {
                 .availableBusinessSeats(flight.getAvailableBusinessSeats())
                 .status(flight.getStatus())
                 .build();
+    }
+
+    private List<String> resolveAirportCodes(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            return List.of();
+        }
+        String cleanQuery = query.trim();
+        List<com.airline.model.Airport> airports = airportRepository.findByNameContainingIgnoreCaseOrIataCodeContainingIgnoreCaseOrCityContainingIgnoreCase(
+                cleanQuery, cleanQuery, cleanQuery);
+        
+        List<String> codes = new java.util.ArrayList<>();
+        for (com.airline.model.Airport airport : airports) {
+            if (airport.getIataCode() != null) {
+                codes.add(airport.getIataCode().toUpperCase());
+            }
+            if (airport.getCity() != null) {
+                codes.add(airport.getCity());
+            }
+        }
+        codes.add(cleanQuery);
+        codes.add(cleanQuery.toUpperCase());
+        return codes.stream().distinct().collect(Collectors.toList());
     }
 }

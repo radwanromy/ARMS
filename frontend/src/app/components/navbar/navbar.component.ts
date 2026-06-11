@@ -12,11 +12,13 @@ import { AuthService } from '../../services/auth.service';
         </div>
         
         <div class="nav-links">
-          <a class="nav-link" routerLink="/search" routerLinkActive="active">Search Flights</a>
-          <a class="nav-link" *ngIf="authService.isLoggedIn()" routerLink="/my-bookings" routerLinkActive="active">My Bookings</a>
-          <a class="nav-link text-accent" href="javascript:void(0)" (click)="openAIVolantSupport($event)" style="font-weight: 700;">AI Volant Support</a>
-          <a class="nav-link text-primary" *ngIf="authService.isLoggedIn() && authService.isAdmin()" routerLink="/admin/bookings" routerLinkActive="active">Manage Bookings</a>
-          <a class="nav-link text-accent" *ngIf="authService.isLoggedIn() && (authService.getCurrentUser()?.role === 'SUPPORT_AGENT' || authService.isAdmin())" routerLink="/support/dashboard" routerLinkActive="active">Support Center</a>
+          <a class="nav-link" routerLink="/search" [class.active]="router.url.includes('/search') && !isAIChatFullscreen">Search Flights</a>
+          <a class="nav-link" *ngIf="authService.isLoggedIn()" routerLink="/my-bookings" [class.active]="router.url.includes('/my-bookings') && !isAIChatFullscreen">My Bookings</a>
+          <a class="nav-link text-accent" href="javascript:void(0)" (click)="openAIVolantSupport($event)" style="font-weight: 700;" [class.active]="isAIChatFullscreen">AI Volant Support</a>
+          <a class="nav-link text-primary" *ngIf="authService.isLoggedIn() && authService.isAdmin()" routerLink="/admin/bookings" [class.active]="router.url.includes('/admin/bookings') && !isAIChatFullscreen">Manage Bookings</a>
+          <a class="nav-link text-accent" *ngIf="authService.isLoggedIn() && authService.isAdmin()" routerLink="/admin/aviation" [class.active]="router.url.includes('/admin/aviation') && !isAIChatFullscreen">Aviation DB</a>
+          <a class="nav-link text-accent" *ngIf="authService.isLoggedIn() && (authService.getCurrentUser()?.role === 'SUPPORT_AGENT' || authService.isAdmin())" routerLink="/support/dashboard" [class.active]="router.url.includes('/support/dashboard') && !isAIChatFullscreen">Support Center</a>
+          <a class="nav-link" routerLink="/radar" [class.active]="router.url.includes('/radar') && !isAIChatFullscreen">Live Radar</a>
         </div>
 
         <div class="nav-actions">
@@ -54,6 +56,13 @@ import { AuthService } from '../../services/auth.service';
                     <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
                   </svg>
                   <span>Manage Bookings</span>
+                </a>
+
+                <a class="dropdown-item" *ngIf="authService.isAdmin()" (click)="goTo('/admin/aviation')">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="item-icon text-accent">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-.778.099-1.533.284-2.253" />
+                  </svg>
+                  <span>Aviation DB</span>
                 </a>
 
                 <a class="dropdown-item" *ngIf="authService.isLoggedIn() && (authService.getCurrentUser()?.role === 'SUPPORT_AGENT' || authService.isAdmin())" (click)="goTo('/support/dashboard')">
@@ -316,12 +325,19 @@ import { AuthService } from '../../services/auth.service';
 export class NavbarComponent {
   isDropdownOpen = false;
   defaultAvatar = 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
+  isAIChatFullscreen = false;
 
   constructor(
     public authService: AuthService, 
-    private router: Router, 
+    public router: Router, 
     private eRef: ElementRef
-  ) {}
+  ) {
+    if (typeof window !== 'undefined') {
+      window.addEventListener('ai-chat-mode-changed', (event: any) => {
+        this.isAIChatFullscreen = event.detail === 'fullscreen';
+      });
+    }
+  }
 
   toggleDropdown(event: Event): void {
     event.stopPropagation();

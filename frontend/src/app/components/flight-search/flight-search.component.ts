@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { FlightService } from '../../services/flight.service';
+import { AviationDataService } from '../../services/aviation-data.service';
 import { Flight } from '../../models/flight.model';
 
 @Component({
@@ -20,29 +21,87 @@ import { Flight } from '../../models/flight.model';
           </button>
         </div>
 
+        <!-- Trip Type Tab Selector -->
+        <div class="trip-type-tabs">
+          <button 
+            type="button" 
+            class="tab-btn" 
+            [class.active]="searchForm.value.tripType === 'ONE_WAY'" 
+            (click)="setTripType('ONE_WAY')">
+            One-Way
+          </button>
+          <button 
+            type="button" 
+            class="tab-btn" 
+            [class.active]="searchForm.value.tripType === 'ROUND_TRIP'" 
+            (click)="setTripType('ROUND_TRIP')">
+            Round-Trip
+          </button>
+        </div>
+
         <form [formGroup]="searchForm" (ngSubmit)="searchFlights()">
           <div class="grid-form">
-            <div class="form-group">
+            <!-- Origin Autocomplete -->
+            <div class="form-group autocomplete-group">
               <label class="form-label" for="origin">Origin</label>
-              <select id="origin" formControlName="origin" class="form-input">
-                <option value="" disabled>Select origin city</option>
-                <option *ngFor="let city of cities" [value]="city">{{ city }}</option>
-              </select>
+              <input 
+                type="text" 
+                id="origin" 
+                class="form-input" 
+                placeholder="Enter city or airport (e.g. Tokyo)"
+                [value]="originInput"
+                (input)="onSearchOrigin($event)"
+                (focus)="showOriginDropdown = true"
+                (blur)="hideDropdownWithDelay('origin')"
+                autocomplete="off">
+              <div class="autocomplete-dropdown glass-panel" *ngIf="showOriginDropdown && originResults.length > 0">
+                <div 
+                  class="autocomplete-item" 
+                  *ngFor="let item of originResults" 
+                  (mousedown)="selectOrigin(item)">
+                  <span class="airport-iata">{{ item.iataCode }} - {{ item.city }}</span>
+                  <span class="airport-details">{{ item.name }}, {{ item.countryIso }}</span>
+                </div>
+              </div>
             </div>
 
-            <div class="form-group">
+            <!-- Destination Autocomplete -->
+            <div class="form-group autocomplete-group">
               <label class="form-label" for="destination">Destination</label>
-              <select id="destination" formControlName="destination" class="form-input">
-                <option value="" disabled>Select destination city</option>
-                <option *ngFor="let city of cities" [value]="city" [disabled]="city === searchForm.value.origin">{{ city }}</option>
-              </select>
+              <input 
+                type="text" 
+                id="destination" 
+                class="form-input" 
+                placeholder="Enter city or airport (e.g. New York)"
+                [value]="destinationInput"
+                (input)="onSearchDestination($event)"
+                (focus)="showDestinationDropdown = true"
+                (blur)="hideDropdownWithDelay('destination')"
+                autocomplete="off">
+              <div class="autocomplete-dropdown glass-panel" *ngIf="showDestinationDropdown && destinationResults.length > 0">
+                <div 
+                  class="autocomplete-item" 
+                  *ngFor="let item of destinationResults" 
+                  (mousedown)="selectDestination(item)">
+                  <span class="airport-iata">{{ item.iataCode }} - {{ item.city }}</span>
+                  <span class="airport-details">{{ item.name }}, {{ item.countryIso }}</span>
+                </div>
+              </div>
             </div>
 
+            <!-- Departure Date -->
             <div class="form-group">
               <label class="form-label" for="departureDate">Departure Date</label>
               <input type="date" id="departureDate" formControlName="departureDate" class="form-input" [min]="minDate" (change)="onDateChange()">
             </div>
 
+            <!-- Return Date (Only for Round-Trip) -->
+            <div class="form-group animate-fade-in" *ngIf="searchForm.value.tripType === 'ROUND_TRIP'">
+              <label class="form-label" for="returnDate">Return Date</label>
+              <input type="date" id="returnDate" formControlName="returnDate" class="form-input" [min]="searchForm.value.departureDate">
+            </div>
+
+            <!-- Travel Class -->
             <div class="form-group">
               <label class="form-label" for="seatClass">Travel Class</label>
               <select id="seatClass" formControlName="seatClass" class="form-input">
@@ -75,19 +134,22 @@ import { Flight } from '../../models/flight.model';
       <div class="compact-header glass-panel animate-fade-in" *ngIf="searched && !showSearchForm">
         <div class="compact-info">
           <div class="compact-route">
-            <span class="city">{{ searchForm.value.origin }}</span>
-            <span class="route-plane">&#9992;</span>
-            <span class="city">{{ searchForm.value.destination }}</span>
+            <span class="city">{{ getFriendlyName(searchForm.value.origin) }}</span>
+            <span class="route-plane" [class.round-trip-plane]="searchForm.value.tripType === 'ROUND_TRIP'">&#9992;</span>
+            <span class="city">{{ getFriendlyName(searchForm.value.destination) }}</span>
           </div>
           <div class="compact-details">
             <span class="detail-badge">
-              <i class="calendar-icon">&#128197;</i> {{ formatHeaderDate(searchForm.value.departureDate) }}
+              <i class="calendar-icon">&#128197;</i> Outbound: {{ formatHeaderDate(searchForm.value.departureDate) }}
+            </span>
+            <span class="detail-badge" *ngIf="searchForm.value.tripType === 'ROUND_TRIP' && searchForm.value.returnDate">
+              <i class="calendar-icon">&#128197;</i> Return: {{ formatHeaderDate(searchForm.value.returnDate) }}
             </span>
             <span class="detail-badge">
               <i class="class-icon">&#128186;</i> {{ searchForm.value.seatClass }}
             </span>
             <span class="detail-badge">
-              <i class="passenger-icon">&#128101;</i> {{ searchForm.value.passengers }} Passenger{{ searchForm.value.passengers > 1 ? 's' : '' }}
+              <i class="passenger-icon">&#128101;</i> {{ searchForm.value.passengers }} Traveler{{ searchForm.value.passengers > 1 ? 's' : '' }}
             </span>
           </div>
         </div>
@@ -125,12 +187,12 @@ import { Flight } from '../../models/flight.model';
       <div class="results-wrapper">
         <div class="results-header" *ngIf="searched && !loading">
           <h3>Available Flights ({{ flights.length }})</h3>
-          <p>Showing flights from {{ searchForm.value.origin }} to {{ searchForm.value.destination }} on {{ formatHeaderDate(searchForm.value.departureDate) }}</p>
+          <p>Showing flights from {{ getFriendlyName(searchForm.value.origin) }} to {{ getFriendlyName(searchForm.value.destination) }}</p>
         </div>
 
         <div class="loading-state" *ngIf="loading">
           <div class="spinner large-spinner"></div>
-          <p>Searching flights paths...</p>
+          <p>Searching flight paths...</p>
         </div>
 
         <div class="empty-state glass-panel" *ngIf="searched && !loading && flights.length === 0">
@@ -178,8 +240,8 @@ import { Flight } from '../../models/flight.model';
             <div class="flight-pricing">
               <div class="price-container">
                 <span class="class-label">{{ searchForm.value.seatClass }}</span>
-                <span class="price-val">\${{ getPrice(flight) }}</span>
-                <span class="price-sub">per passenger</span>
+                <span class="price-val">\${{ getPrice(flight) * (searchForm.value.tripType === 'ROUND_TRIP' ? 1.8 : 1) | number:'1.0-0' }}</span>
+                <span class="price-sub">{{ searchForm.value.tripType === 'ROUND_TRIP' ? 'round-trip' : 'per passenger' }}</span>
               </div>
 
               <button class="btn btn-primary select-btn" (click)="selectFlight(flight)">
@@ -189,6 +251,9 @@ import { Flight } from '../../models/flight.model';
           </div>
         </div>
       </div>
+      
+      <!-- Curated Packages & Galleries -->
+      <app-travel-packages></app-travel-packages>
     </div>
   `,
   styles: [`
@@ -202,12 +267,42 @@ import { Flight } from '../../models/flight.model';
     }
     .search-subtitle {
       color: var(--text-secondary);
-      margin-bottom: 32px;
+      margin-bottom: 24px;
       font-size: 1rem;
     }
+    
+    /* Trip Type Tabs styling */
+    .trip-type-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--glass-border);
+      padding-bottom: 12px;
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      padding: 8px 16px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: var(--transition-fast);
+    }
+    .tab-btn:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-primary);
+    }
+    .tab-btn.active {
+      background: rgba(59, 130, 246, 0.15);
+      color: #3b82f6;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
     .grid-form {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 24px;
       margin-bottom: 24px;
     }
@@ -596,6 +691,10 @@ import { Flight } from '../../models/flight.model';
       color: #3b82f6;
       font-size: 1.2rem;
       transform: rotate(45deg);
+      transition: transform 0.3s ease;
+    }
+    .compact-route .route-plane.round-trip-plane {
+      transform: rotate(90deg);
     }
     .compact-details {
       display: flex;
@@ -661,6 +760,47 @@ import { Flight } from '../../models/flight.model';
       animation: carousel-shimmer 1.5s infinite linear;
     }
 
+    /* Autocomplete dropdown styles */
+    .autocomplete-group {
+      position: relative;
+    }
+    .autocomplete-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      max-height: 250px;
+      overflow-y: auto;
+      z-index: 1000;
+      margin-top: 8px;
+      padding: 8px 0;
+      border-radius: 12px;
+      background: rgba(30, 41, 59, 0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    }
+    .autocomplete-item {
+      padding: 12px 16px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: var(--transition-fast);
+    }
+    .autocomplete-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .airport-iata {
+      font-weight: 700;
+      color: #3b82f6;
+      font-size: 0.95rem;
+    }
+    .airport-details {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+    }
+
     /* Animations styling */
     .animate-fade-in {
       animation: fadeIn 0.4s ease forwards;
@@ -695,7 +835,7 @@ import { Flight } from '../../models/flight.model';
     }
   `]
 })
-export class FlightSearchComponent {
+export class FlightSearchComponent implements OnInit {
   searchForm: FormGroup;
   flights: Flight[] = [];
   loading = false;
@@ -704,24 +844,117 @@ export class FlightSearchComponent {
   minDate: string;
   carouselDates: { dateStr: string, dayName: string, dateFormatted: string, price: number, active: boolean }[] = [];
 
-  cities = ['New York', 'London', 'Tokyo', 'Paris', 'Dubai', 'Singapore'];
+  // Autocomplete UI States
+  originInput = '';
+  destinationInput = '';
+  showOriginDropdown = false;
+  showDestinationDropdown = false;
+  originResults: any[] = [];
+  destinationResults: any[] = [];
 
   constructor(
     private fb: FormBuilder,
     private flightService: FlightService,
+    private aviationDataService: AviationDataService,
     private router: Router
   ) {
-    // Determine today's date formatted as YYYY-MM-DD
     const today = new Date();
     this.minDate = today.toISOString().split('T')[0];
 
     this.searchForm = this.fb.group({
+      tripType: ['ONE_WAY', Validators.required],
       origin: ['', Validators.required],
       destination: ['', Validators.required],
       departureDate: [this.minDate, Validators.required],
+      returnDate: [''],
       seatClass: ['ECONOMY', Validators.required],
       passengers: [1, [Validators.required, Validators.min(1), Validators.max(9)]]
     });
+  }
+
+  ngOnInit(): void {
+    // Check if redirect has search params
+    const nav = this.router.getCurrentNavigation();
+    if (nav?.extras.state) {
+      const state = nav.extras.state as any;
+      if (state.searchForm) {
+        this.searchForm.patchValue(state.searchForm);
+        this.originInput = state.searchForm.origin;
+        this.destinationInput = state.searchForm.destination;
+        this.searchFlights();
+      }
+    }
+  }
+
+  setTripType(type: 'ONE_WAY' | 'ROUND_TRIP'): void {
+    this.searchForm.patchValue({ tripType: type });
+    const returnDateControl = this.searchForm.get('returnDate');
+    if (type === 'ROUND_TRIP') {
+      returnDateControl?.setValidators([Validators.required]);
+      if (!returnDateControl?.value) {
+        returnDateControl?.setValue(this.searchForm.value.departureDate);
+      }
+    } else {
+      returnDateControl?.clearValidators();
+      returnDateControl?.setValue('');
+    }
+    returnDateControl?.updateValueAndValidity();
+  }
+
+  // Autocomplete - Origin
+  onSearchOrigin(event: any): void {
+    const query = event.target.value;
+    this.originInput = query;
+    this.searchForm.patchValue({ origin: '' }); // invalidate until selected
+
+    if (query.trim().length >= 2) {
+      this.aviationDataService.searchAirports(query).subscribe({
+        next: (data) => this.originResults = data,
+        error: () => this.originResults = []
+      });
+    } else {
+      this.originResults = [];
+    }
+  }
+
+  selectOrigin(airport: any): void {
+    this.searchForm.patchValue({ origin: airport.iataCode });
+    this.originInput = `${airport.city} (${airport.iataCode})`;
+    this.showOriginDropdown = false;
+    this.originResults = [];
+  }
+
+  // Autocomplete - Destination
+  onSearchDestination(event: any): void {
+    const query = event.target.value;
+    this.destinationInput = query;
+    this.searchForm.patchValue({ destination: '' }); // invalidate until selected
+
+    if (query.trim().length >= 2) {
+      this.aviationDataService.searchAirports(query).subscribe({
+        next: (data) => this.destinationResults = data,
+        error: () => this.destinationResults = []
+      });
+    } else {
+      this.destinationResults = [];
+    }
+  }
+
+  selectDestination(airport: any): void {
+    this.searchForm.patchValue({ destination: airport.iataCode });
+    this.destinationInput = `${airport.city} (${airport.iataCode})`;
+    this.showDestinationDropdown = false;
+    this.destinationResults = [];
+  }
+
+  hideDropdownWithDelay(type: 'origin' | 'destination'): void {
+    setTimeout(() => {
+      if (type === 'origin') {
+        this.showOriginDropdown = false;
+      } else {
+        this.showDestinationDropdown = false;
+      }
+    }, 200);
   }
 
   onDateChange(): void {
@@ -754,43 +987,20 @@ export class FlightSearchComponent {
     const selectedDateObj = new Date(selectedDateStr);
     const seatClass = this.searchForm.value.seatClass;
     
-    // Find base price
     let basePrice = 0;
     if (flights.length > 0) {
       basePrice = Math.min(...flights.map(f => this.getPrice(f)));
     } else {
-      // Fallback base price based on route and seat class
-      const origin = this.searchForm.value.origin;
-      const destination = this.searchForm.value.destination;
-      const key = `${origin}-${destination}`;
-      
-      const prices: { [key: string]: { ECONOMY: number, BUSINESS: number } } = {
-        'Tokyo-Paris': { ECONOMY: 850, BUSINESS: 2100 },
-        'Tokyo-New York': { ECONOMY: 980, BUSINESS: 2450 },
-        'Tokyo-Seoul': { ECONOMY: 220, BUSINESS: 550 },
-        'Tokyo-Singapore': { ECONOMY: 450, BUSINESS: 1150 },
-        'Tokyo-London': { ECONOMY: 890, BUSINESS: 2300 },
-        'Tokyo-Sydney': { ECONOMY: 680, BUSINESS: 1750 },
-        'Paris-Tokyo': { ECONOMY: 850, BUSINESS: 2100 },
-        'New York-Tokyo': { ECONOMY: 980, BUSINESS: 2450 },
-        'Seoul-Tokyo': { ECONOMY: 220, BUSINESS: 550 },
-        'Singapore-Tokyo': { ECONOMY: 450, BUSINESS: 1150 },
-        'London-Tokyo': { ECONOMY: 890, BUSINESS: 2300 },
-        'Sydney-Tokyo': { ECONOMY: 680, BUSINESS: 1750 }
-      };
-      
-      const routePrice = prices[key] || { ECONOMY: 500, BUSINESS: 1200 };
-      basePrice = seatClass === 'BUSINESS' ? routePrice.BUSINESS : routePrice.ECONOMY;
+      // Fallback base price
+      basePrice = seatClass === 'BUSINESS' ? 1200 : 500;
     }
     
     this.carouselDates = [];
     
-    // Generate dates: selectedDate +/- 3 days
     for (let i = -3; i <= 3; i++) {
       const currentDateObj = new Date(selectedDateObj);
       currentDateObj.setDate(selectedDateObj.getDate() + i);
       
-      // Do not show dates before minDate
       const minDateObj = new Date(this.minDate);
       minDateObj.setHours(0,0,0,0);
       currentDateObj.setHours(0,0,0,0);
@@ -803,7 +1013,6 @@ export class FlightSearchComponent {
       const dayName = currentDateObj.toLocaleDateString('en-US', { weekday: 'short' });
       const dateFormatted = currentDateObj.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
       
-      // Calculate a realistic price variation based on day of week
       const dayOfWeek = currentDateObj.getDay();
       let multiplier = 1.0;
       if (dayOfWeek === 5 || dayOfWeek === 0) { // Friday or Sunday
@@ -814,7 +1023,6 @@ export class FlightSearchComponent {
         multiplier = 0.90;
       }
       
-      // Add slight deterministic offset based on day number
       const offset = (currentDateObj.getDate() % 4) * 5; 
       const finalPrice = Math.round((basePrice * multiplier) + offset);
       
@@ -839,7 +1047,7 @@ export class FlightSearchComponent {
     });
   }
 
-  // Helper Methods
+  // Helpers
   formatTime(dateTimeStr: string): string {
     const date = new Date(dateTimeStr);
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
@@ -863,5 +1071,13 @@ export class FlightSearchComponent {
     return this.searchForm.value.seatClass === 'BUSINESS' 
         ? flight.businessPrice 
         : flight.economyPrice;
+  }
+
+  getFriendlyName(code: string): string {
+    if (!code) return '';
+    if (code.length === 3) {
+      return code.toUpperCase();
+    }
+    return code;
   }
 }

@@ -25,7 +25,11 @@ import { Booking } from '../../models/booking.model';
       </div>
 
       <div class="empty-state glass-panel" *ngIf="!loading && bookings.length === 0">
-        <div class="empty-icon">&#128196;</div>
+        <div class="empty-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 0 0-1.883 2.542l.857 6a2.25 2.25 0 0 0 2.227 1.932H19.05a2.25 2.25 0 0 0 2.227-1.932l.857-6a2.25 2.25 0 0 0-1.883-2.542m-16.5 0V6A2.25 2.25 0 0 1 6 3.75h3.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 0 1.06.44H18A2.25 2.25 0 0 1 20.25 9v.776" />
+          </svg>
+        </div>
         <h4>No Bookings Found</h4>
         <p>You haven't made any flight reservations yet. Start searching to book your first flight!</p>
         <button class="btn btn-primary" (click)="navigate('/search')">Search Flights</button>
@@ -400,9 +404,17 @@ import { Booking } from '../../models/booking.model';
       padding: 60px 20px;
     }
     .empty-icon {
-      font-size: 4rem;
       color: var(--text-muted);
       margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 72px;
+      height: 72px;
+    }
+    .empty-icon svg {
+      width: 100%;
+      height: 100%;
     }
     .empty-state h4 {
       font-family: var(--font-title);

@@ -20,7 +20,11 @@ import { Booking } from '../../models/booking.model';
       <!-- Stats Grid -->
       <div class="stats-grid animate-fade-in" *ngIf="bookings.length > 0">
         <div class="stat-card glass-panel glow-blue">
-          <span class="stat-icon">&#128197;</span>
+          <span class="stat-icon blue">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2Z" />
+            </svg>
+          </span>
           <div class="stat-content">
             <span class="stat-lbl">Total Bookings</span>
             <span class="stat-val">{{ bookings.length }}</span>
@@ -28,7 +32,11 @@ import { Booking } from '../../models/booking.model';
         </div>
 
         <div class="stat-card glass-panel glow-green">
-          <span class="stat-icon">&#9989;</span>
+          <span class="stat-icon green">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" />
+            </svg>
+          </span>
           <div class="stat-content">
             <span class="stat-lbl">Confirmed Bookings</span>
             <span class="stat-val text-success">{{ getCount('CONFIRMED') }}</span>
@@ -36,7 +44,11 @@ import { Booking } from '../../models/booking.model';
         </div>
 
         <div class="stat-card glass-panel glow-yellow">
-          <span class="stat-icon">&#8986;</span>
+          <span class="stat-icon yellow">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+          </span>
           <div class="stat-content">
             <span class="stat-lbl">Pending Bookings</span>
             <span class="stat-val text-warning">{{ getCount('PENDING') }}</span>
@@ -44,7 +56,11 @@ import { Booking } from '../../models/booking.model';
         </div>
 
         <div class="stat-card glass-panel glow-purple">
-          <span class="stat-icon">&#128181;</span>
+          <span class="stat-icon purple">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5h16.5a2.25 2.25 0 0 1 2.25 2.25v10.5a2.25 2.25 0 0 1-2.25 2.25H3.75a2.25 2.25 0 0 1-2.25-2.25V6.75A2.25 2.25 0 0 1 3.75 4.5ZM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z" />
+            </svg>
+          </span>
           <div class="stat-content">
             <span class="stat-lbl">Total Revenue</span>
             <span class="stat-val text-primary">\${{ getRevenue() }}</span>
@@ -55,7 +71,11 @@ import { Booking } from '../../models/booking.model';
       <!-- Controls Panel -->
       <div class="controls-card glass-panel animate-fade-in">
         <div class="search-box">
-          <span class="search-icon">&#128269;</span>
+          <span class="search-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.602 10.602Z" />
+            </svg>
+          </span>
           <input 
             type="text" 
             placeholder="Search by PNR reference, passenger name, username..." 
@@ -131,7 +151,11 @@ import { Booking } from '../../models/booking.model';
               <td>
                 <div class="actions-cell">
                   <button class="btn-action btn-view" (click)="viewDetails(booking)" title="View Details">
-                    &#128065; View
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="btn-action-svg">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                    </svg>
+                    View
                   </button>
                   <button 
                     *ngIf="booking.status === 'PENDING'" 
@@ -139,7 +163,10 @@ import { Booking } from '../../models/booking.model';
                     (click)="updateStatus(booking.bookingReference, 'CONFIRMED')"
                     title="Confirm Reservation"
                   >
-                    &#9989; Confirm
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="btn-action-svg">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="m4.5 12.75 6 6 9-13.5" />
+                    </svg>
+                    Confirm
                   </button>
                   <button 
                     *ngIf="booking.status === 'CONFIRMED'" 
@@ -147,7 +174,10 @@ import { Booking } from '../../models/booking.model';
                     (click)="updateStatus(booking.bookingReference, 'COMPLETED')"
                     title="Mark Completed"
                   >
-                    &#128076; Complete
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="btn-action-svg">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                    Complete
                   </button>
                   <button 
                     *ngIf="booking.status === 'COMPLETED'" 
@@ -155,7 +185,10 @@ import { Booking } from '../../models/booking.model';
                     (click)="updateStatus(booking.bookingReference, 'CONFIRMED')"
                     title="Reopen Booking"
                   >
-                    &#8634; Reopen
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="btn-action-svg">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                    </svg>
+                    Reopen
                   </button>
                   <button 
                     *ngIf="booking.status === 'PENDING' || booking.status === 'CONFIRMED'" 
@@ -163,7 +196,10 @@ import { Booking } from '../../models/booking.model';
                     (click)="updateStatus(booking.bookingReference, 'CANCELLED')"
                     title="Cancel Booking"
                   >
-                    &#10060; Cancel
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="btn-action-svg">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                    Cancel
                   </button>
                   <button 
                     *ngIf="booking.status === 'CANCELLED'" 
@@ -171,7 +207,10 @@ import { Booking } from '../../models/booking.model';
                     (click)="updateStatus(booking.bookingReference, 'PENDING')"
                     title="Re-activate Booking"
                   >
-                    &#8634; Re-activate
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="btn-action-svg">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                    </svg>
+                    Re-activate
                   </button>
                 </div>
               </td>
@@ -182,8 +221,12 @@ import { Booking } from '../../models/booking.model';
 
       <!-- Empty State -->
       <div class="empty-state glass-panel animate-fade-in" *ngIf="!loading && filteredBookings.length === 0">
-        <div class="empty-icon">&#128196;</div>
-        <h4>No Bookings Found</h4>
+        <div class="empty-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 0 0-1.883 2.542l.857 6a2.25 2.25 0 0 0 2.227 1.932H19.05a2.25 2.25 0 0 0 2.227-1.932l.857-6a2.25 2.25 0 0 0-1.883-2.542m-16.5 0V6A2.25 2.25 0 0 1 6 3.75h3.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 0 1.06.44H18A2.25 2.25 0 0 1 20.25 9v.776" />
+          </svg>
+        </div>
+        <h4>No reservations found</h4>
         <p>No reservations matched your active filter criteria.</p>
       </div>
 
@@ -434,7 +477,40 @@ import { Booking } from '../../models/booking.model';
       overflow: hidden;
     }
     .stat-icon {
-      font-size: 2.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 46px;
+      height: 46px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--glass-border);
+      padding: 10px;
+      flex-shrink: 0;
+    }
+    .stat-icon.blue {
+      color: #60a5fa;
+      background: rgba(59, 130, 246, 0.1);
+      border-color: rgba(59, 130, 246, 0.2);
+    }
+    .stat-icon.green {
+      color: #34d399;
+      background: rgba(16, 185, 129, 0.1);
+      border-color: rgba(16, 185, 129, 0.2);
+    }
+    .stat-icon.yellow {
+      color: #fbbf24;
+      background: rgba(245, 158, 11, 0.1);
+      border-color: rgba(245, 158, 11, 0.2);
+    }
+    .stat-icon.purple {
+      color: #c084fc;
+      background: rgba(139, 92, 246, 0.1);
+      border-color: rgba(139, 92, 246, 0.2);
+    }
+    .stat-icon svg {
+      width: 100%;
+      height: 100%;
     }
     .stat-content {
       display: flex;
@@ -495,7 +571,15 @@ import { Booking } from '../../models/booking.model';
       position: absolute;
       left: 16px;
       color: var(--text-muted);
-      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+    }
+    .search-icon svg {
+      width: 100%;
+      height: 100%;
     }
     .search-input {
       width: 100%;
@@ -662,6 +746,12 @@ import { Booking } from '../../models/booking.model';
       transition: var(--transition-fast);
       color: #fff;
     }
+    .btn-action-svg {
+      width: 14px;
+      height: 14px;
+      stroke-width: 2.5;
+      flex-shrink: 0;
+    }
     .btn-view {
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid var(--glass-border);
@@ -719,9 +809,17 @@ import { Booking } from '../../models/booking.model';
       text-align: center;
     }
     .empty-icon {
-      font-size: 3rem;
       color: var(--text-muted);
       margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 64px;
+      height: 64px;
+    }
+    .empty-icon svg {
+      width: 100%;
+      height: 100%;
     }
     .empty-state h4 {
       font-size: 1.25rem;

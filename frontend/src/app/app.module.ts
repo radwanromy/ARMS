@@ -21,6 +21,9 @@ import { BookingModifyComponent } from './components/booking-modify/booking-modi
 import { ChatPanelComponent } from './components/chat-panel/chat-panel.component';
 import { SupportDashboardComponent } from './components/support-dashboard/support-dashboard.component';
 import { AIAssistantWidgetComponent } from './components/ai-assistant-widget/ai-assistant-widget.component';
+import { FlightTrackerComponent } from './components/flight-tracker/flight-tracker.component';
+import { TravelPackagesComponent } from './components/travel-packages/travel-packages.component';
+import { AdminAviationManagementComponent } from './components/admin-aviation-management/admin-aviation-management.component';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 
 @NgModule({
@@ -41,7 +44,10 @@ import { AuthInterceptor } from './interceptors/auth.interceptor';
     BookingModifyComponent,
     ChatPanelComponent,
     SupportDashboardComponent,
-    AIAssistantWidgetComponent
+    AIAssistantWidgetComponent,
+    FlightTrackerComponent,
+    TravelPackagesComponent,
+    AdminAviationManagementComponent
   ],
   imports: [
     BrowserModule,

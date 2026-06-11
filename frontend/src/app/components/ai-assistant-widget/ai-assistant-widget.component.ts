@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, ElementRef, ViewChild, AfterViewChecked } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
 import { AIAssistantService } from '../../services/ai-assistant.service';
 import { AIMessage } from '../../models/support.model';
 
@@ -601,11 +601,25 @@ import { AIMessage } from '../../models/support.model';
 export class AIAssistantWidgetComponent implements OnInit, AfterViewChecked {
   @ViewChild('messageScrollContainer') private scrollContainer!: ElementRef;
 
-  displayMode: 'hidden' | 'window' | 'fullscreen' = 'hidden';
+  private _displayMode: 'hidden' | 'window' | 'fullscreen' = 'hidden';
+
+  get displayMode(): 'hidden' | 'window' | 'fullscreen' {
+    return this._displayMode;
+  }
+
+  set displayMode(value: 'hidden' | 'window' | 'fullscreen') {
+    if (this._displayMode !== value) {
+      this._displayMode = value;
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('ai-chat-mode-changed', { detail: value }));
+      }
+    }
+  }
   messages: AIMessage[] = [];
   userInput = '';
   typing = false;
   sessionId = '';
+  hasInitializedChat = false;
 
   activeTab: 'chat' | 'recent' = 'chat';
   recentSessions: any[] = [];
@@ -617,6 +631,15 @@ export class AIAssistantWidgetComponent implements OnInit, AfterViewChecked {
   ) {}
 
   ngOnInit(): void {
+    // Hide fullscreen chat on page navigation
+    this.router.events.subscribe(event => {
+      if (event instanceof NavigationEnd) {
+        if (this.displayMode === 'fullscreen') {
+          this.displayMode = 'hidden';
+        }
+      }
+    });
+
     this.sessionId = localStorage.getItem('aiSessionId') || '';
     if (!this.sessionId) {
       this.sessionId = 'session_' + Math.random().toString(36).substring(2, 15);
@@ -636,11 +659,12 @@ export class AIAssistantWidgetComponent implements OnInit, AfterViewChecked {
 
     // Register opening listener for AI Volant Support navbar trigger
     window.addEventListener('open-ai-chat', (event: any) => {
-      this.displayMode = 'window';
+      this.displayMode = 'fullscreen';
       this.activeTab = 'chat';
-      if (event.detail === 'services') {
+      if (event.detail === 'services' && !this.hasInitializedChat) {
         this.userInput = 'Tell me about Volant Airlines services';
         this.sendMessage();
+        this.hasInitializedChat = true;
       }
     });
   }

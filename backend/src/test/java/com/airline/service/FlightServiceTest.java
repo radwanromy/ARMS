@@ -8,6 +8,7 @@ import com.airline.dto.FlightDTO;
 import com.airline.model.Flight;
 import com.airline.model.FlightStatus;
 import com.airline.repository.FlightRepository;
+import com.airline.repository.AirportRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -24,6 +25,9 @@ class FlightServiceTest {
 
     @Mock
     private FlightRepository flightRepository;
+
+    @Mock
+    private AirportRepository airportRepository;
 
     @Mock
     private MetricsService metricsService;
@@ -53,8 +57,12 @@ class FlightServiceTest {
                 .status(FlightStatus.SCHEDULED)
                 .build());
 
-        when(flightRepository.findByOriginAndDestinationAndDepartureTimeBetween(
-                anyString(), anyString(), any(LocalDateTime.class), any(LocalDateTime.class)))
+        when(airportRepository.findByNameContainingIgnoreCaseOrIataCodeContainingIgnoreCaseOrCityContainingIgnoreCase(
+                anyString(), anyString(), anyString()))
+                .thenReturn(new ArrayList<>());
+
+        when(flightRepository.findByOriginInAndDestinationInAndDepartureTimeBetween(
+                anyList(), anyList(), any(LocalDateTime.class), any(LocalDateTime.class)))
                 .thenReturn(mockFlights);
 
         // When
@@ -63,7 +71,7 @@ class FlightServiceTest {
         // Then
         assertThat(result).isNotEmpty();
         assertThat(result.get(0).getAvailableEconomySeats()).isGreaterThan(0);
-        verify(flightRepository, times(1)).findByOriginAndDestinationAndDepartureTimeBetween(
-                anyString(), anyString(), any(LocalDateTime.class), any(LocalDateTime.class));
+        verify(flightRepository, times(1)).findByOriginInAndDestinationInAndDepartureTimeBetween(
+                anyList(), anyList(), any(LocalDateTime.class), any(LocalDateTime.class));
     }
 }

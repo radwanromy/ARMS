@@ -32,6 +32,8 @@ public class AIBookingService {
     private final ReservationService reservationService;
     private final BookingAuditLogRepository bookingAuditLogRepository;
     private final SupportTicketRepository supportTicketRepository;
+    private final AirportRepository airportRepository;
+    private final CountryRepository countryRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final String STATE_START = "START";
@@ -434,6 +436,28 @@ public class AIBookingService {
 
     // --- Search Helper ---
 
+    private List<String> resolveAirportCodes(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            return List.of();
+        }
+        String cleanQuery = query.trim();
+        List<Airport> airports = airportRepository.findByNameContainingIgnoreCaseOrIataCodeContainingIgnoreCaseOrCityContainingIgnoreCase(
+                cleanQuery, cleanQuery, cleanQuery);
+        
+        List<String> codes = new ArrayList<>();
+        for (Airport airport : airports) {
+            if (airport.getIataCode() != null) {
+                codes.add(airport.getIataCode().toUpperCase());
+            }
+            if (airport.getCity() != null) {
+                codes.add(airport.getCity());
+            }
+        }
+        codes.add(cleanQuery);
+        codes.add(cleanQuery.toUpperCase());
+        return codes.stream().distinct().collect(Collectors.toList());
+    }
+
     private String executeFlightSearch(Map<String, Object> context, AIBookingSession session) {
         String origin = (String) context.get("origin");
         String dest = (String) context.get("destination");
@@ -442,7 +466,11 @@ public class AIBookingService {
         LocalDateTime startDateTime = date.atStartOfDay();
         LocalDateTime endDateTime = date.atTime(LocalTime.MAX);
 
-        List<Flight> flights = flightRepository.findByOriginAndDestinationAndDepartureTimeBetween(origin, dest, startDateTime, endDateTime);
+        List<String> origins = resolveAirportCodes(origin);
+        List<String> destinations = resolveAirportCodes(dest);
+
+        List<Flight> flights = flightRepository.findByOriginInAndDestinationInAndDepartureTimeBetween(
+                origins, destinations, startDateTime, endDateTime);
 
         if (flights.isEmpty()) {
             // Clear search context to prompt again
@@ -515,36 +543,133 @@ public class AIBookingService {
 
     // --- NLP Parsers ---
 
+    private int findWordOccurrence(String text, String word) {
+        int idx = -1;
+        while ((idx = text.indexOf(word, idx + 1)) >= 0) {
+            boolean startBoundary = (idx == 0 || !Character.isLetterOrDigit(text.charAt(idx - 1)));
+            boolean endBoundary = (idx + word.length() == text.length() || !Character.isLetterOrDigit(text.charAt(idx + word.length())));
+            if (startBoundary && endBoundary) {
+                return idx;
+            }
+        }
+        return -1;
+    }
+
     private String parseCity(String text, boolean findOrigin, String excludeCity) {
-        // Matches common airport / city words
-        List<String> cities = Arrays.asList("Tokyo", "Dubai", "London", "Paris", "New York", "NRT", "HND", "DXB", "LHR", "JFK", "CDG");
         String input = text.toLowerCase();
 
+        // Fetch all airports and countries dynamically to resolve search terms
+        List<Airport> airports = airportRepository.findAll();
+        List<Country> countries = countryRepository.findAll();
+
+        // Build search terms list dynamically
+        Map<String, String> termMap = new LinkedHashMap<>();
+
+        // Add exact IATA codes
+        for (Airport a : airports) {
+            if (a.getIataCode() != null) {
+                termMap.put(a.getIataCode().toLowerCase(), a.getIataCode().toUpperCase());
+            }
+        }
+        // Add city names
+        for (Airport a : airports) {
+            if (a.getCity() != null) {
+                termMap.put(a.getCity().toLowerCase(), a.getCity());
+            }
+        }
+        // Add country names
+        for (Country c : countries) {
+            if (c.getName() != null) {
+                termMap.put(c.getName().toLowerCase(), c.getName());
+            }
+        }
+
+        // Find preposition indices
+        int fromIdx = -1;
+        String[] fromPreps = {"from", "out of", "departing"};
+        for (String prep : fromPreps) {
+            int idx = findWordOccurrence(input, prep);
+            if (idx >= 0 && (fromIdx == -1 || idx < fromIdx)) {
+                fromIdx = idx;
+            }
+        }
+
+        int toIdx = -1;
+        String[] toPreps = {"to", "arrive in", "destination"};
+        for (String prep : toPreps) {
+            int idx = -1;
+            while ((idx = input.indexOf(prep, idx + 1)) >= 0) {
+                // Check word boundaries for preposition
+                boolean startBoundary = (idx == 0 || !Character.isLetterOrDigit(input.charAt(idx - 1)));
+                boolean endBoundary = (idx + prep.length() == input.length() || !Character.isLetterOrDigit(input.charAt(idx + prep.length())));
+                if (!startBoundary || !endBoundary) {
+                    continue;
+                }
+                
+                if (fromIdx >= 0 && idx > fromIdx) {
+                    if (toIdx == -1 || toIdx < fromIdx || idx < toIdx) {
+                        toIdx = idx;
+                    }
+                } else {
+                    if (toIdx == -1 || idx < toIdx) {
+                        toIdx = idx;
+                    }
+                }
+            }
+        }
+
+        String bestValue = null;
+        int minDistance = Integer.MAX_VALUE;
+
         if (findOrigin) {
-            Matcher m = Pattern.compile("(?:from|out of|departing)\\s+([a-zA-Z\\s]+)").matcher(input);
-            if (m.find()) {
-                String matched = m.group(1).trim();
-                for (String c : cities) {
-                    if (matched.toLowerCase().contains(c.toLowerCase())) return c;
+            for (Map.Entry<String, String> entry : termMap.entrySet()) {
+                String key = entry.getKey();
+                int idx = findWordOccurrence(input, key);
+                if (idx >= 0) {
+                    if (fromIdx >= 0) {
+                        if (idx >= fromIdx) {
+                            int dist = idx - fromIdx;
+                            if (dist < minDistance) {
+                                minDistance = dist;
+                                bestValue = entry.getValue();
+                            }
+                        }
+                    } else {
+                        if (idx < minDistance) {
+                            minDistance = idx;
+                            bestValue = entry.getValue();
+                        }
+                    }
                 }
             }
         } else {
-            Matcher m = Pattern.compile("(?:to|arrive in|destination)\\s+([a-zA-Z\\s]+)").matcher(input);
-            if (m.find()) {
-                String matched = m.group(1).trim();
-                for (String c : cities) {
-                    if (matched.toLowerCase().contains(c.toLowerCase())) return c;
+            for (Map.Entry<String, String> entry : termMap.entrySet()) {
+                String key = entry.getKey();
+                String val = entry.getValue();
+                if (val.equalsIgnoreCase(excludeCity)) {
+                    continue;
+                }
+                int idx = findWordOccurrence(input, key);
+                if (idx >= 0) {
+                    if (toIdx >= 0) {
+                        if (idx >= toIdx) {
+                            int dist = idx - toIdx;
+                            if (dist < minDistance) {
+                                minDistance = dist;
+                                bestValue = val;
+                            }
+                        }
+                    } else {
+                        if (idx < minDistance) {
+                            minDistance = idx;
+                            bestValue = val;
+                        }
+                    }
                 }
             }
         }
 
-        // Fallback: match any city from list not excluded
-        for (String c : cities) {
-            if (c.equals(excludeCity)) continue;
-            if (input.contains(c.toLowerCase())) return c;
-        }
-
-        return null;
+        return bestValue;
     }
 
     private LocalDate parseDate(String text) {
