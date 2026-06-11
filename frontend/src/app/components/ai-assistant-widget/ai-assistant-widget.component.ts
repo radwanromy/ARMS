@@ -8,8 +8,7 @@ import { AIMessage } from '../../models/support.model';
   template: `
     <!-- Floating Bubble Trigger -->
     <div class="ai-bubble-trigger animate-bounce" *ngIf="displayMode === 'hidden'" (click)="setDisplayMode('window')" title="Open AI Travel Assistant">
-      <div class="bubble-icon">🤖</div>
-      <span class="bubble-badge">Volant AI</span>
+      <img src="assets/Stylized_Bird_Logo_for_Volant_AI-removebg-preview.png" alt="Volant AI" class="bubble-logo-img">
     </div>
 
     <!-- Main Chat Container (Window or Full-Screen) -->
@@ -18,7 +17,7 @@ import { AIMessage } from '../../models/support.model';
       <!-- Header -->
       <div class="chat-header">
         <div class="header-info">
-          <span class="bot-avatar">🤖</span>
+          <img src="assets/Stylized_Bird_Logo_for_Volant_AI-removebg-preview.png" alt="Volant AI" class="header-logo-img">
           <div>
             <h4 class="title">Volant Assistant</h4>
             <span class="subtitle">Virtual Travel Agent</span>
@@ -169,16 +168,11 @@ import { AIMessage } from '../../models/support.model';
     .ai-bubble-trigger:hover {
       transform: scale(1.1) rotate(5deg);
     }
-    .bubble-icon {
-      font-size: 1.8rem;
-    }
-    .bubble-badge {
-      font-size: 0.62rem;
-      font-weight: 700;
-      color: #fff;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-top: -2px;
+    .bubble-logo-img {
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.15));
     }
 
     /* Main Chat Container */
@@ -231,8 +225,14 @@ import { AIMessage } from '../../models/support.model';
       align-items: center;
       gap: 12px;
     }
-    .bot-avatar {
-      font-size: 1.8rem;
+    .header-logo-img {
+      width: 34px;
+      height: 34px;
+      object-fit: contain;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--glass-border);
+      padding: 4px;
     }
     .chat-header .title {
       font-family: var(--font-title);
