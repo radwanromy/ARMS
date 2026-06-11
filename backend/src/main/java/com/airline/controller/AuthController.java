@@ -51,6 +51,9 @@ public class AuthController {
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .role(user.getRole().name())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .profilePicture(user.getProfilePicture())
                 .build();
 
         return ResponseEntity.ok(response);
@@ -60,5 +63,11 @@ public class AuthController {
     public ResponseEntity<UserDTO> getCurrentUser() {
         UserDTO userDTO = userService.getCurrentUserProfile();
         return ResponseEntity.ok(userDTO);
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<UserDTO> updateProfile(@Valid @RequestBody UserDTO userDTO) {
+        UserDTO updated = userService.updateUserProfile(userDTO);
+        return ResponseEntity.ok(updated);
     }
 }

@@ -12,10 +12,57 @@ import { Booking } from '../../models/booking.model';
       <div class="payment-grid" *ngIf="booking; else loadingTpl">
         
         <!-- Payment processing overlay -->
-        <div class="processing-overlay" *ngIf="processing">
+        <div class="processing-overlay" *ngIf="processing || biometricProcessing">
           <div class="spinner large-spinner"></div>
-          <h4>Authorizing Transaction...</h4>
+          <h4 *ngIf="biometricProcessing">Verifying Biometric Credentials...</h4>
+          <h4 *ngIf="processing && !biometricProcessing">Authorizing Transaction...</h4>
           <p>Please do not refresh or close this tab.</p>
+        </div>
+
+        <!-- Pre-Payment Re-Authentication Modal -->
+        <div class="auth-modal-overlay" *ngIf="showAuthModal">
+          <div class="auth-modal glass-panel animate-zoom">
+            <h3 class="auth-title">🛡️ Security Verification Required</h3>
+            <p class="auth-desc">Please complete re-authentication to secure your booking payment.</p>
+            
+            <div class="auth-toggle">
+              <button class="toggle-btn" [class.active]="authMethod === 'password'" (click)="setAuthMethod('password')">Password</button>
+              <button class="toggle-btn" [class.active]="authMethod === 'otp'" (click)="setAuthMethod('otp')">One-Time OTP</button>
+            </div>
+
+            <!-- Password Re-auth Form -->
+            <div *ngIf="authMethod === 'password'" class="auth-body">
+              <div class="form-group">
+                <label class="form-label" for="reauthPassword">Enter Account Password</label>
+                <input type="password" id="reauthPassword" [(ngModel)]="authPassword" class="form-input" placeholder="••••••••">
+              </div>
+            </div>
+
+            <!-- OTP Re-auth Form -->
+            <div *ngIf="authMethod === 'otp'" class="auth-body">
+              <div class="otp-actions" *ngIf="!otpSent">
+                <p>We will send a 6-digit One-Time Password to your registered contact details.</p>
+                <button class="btn btn-primary btn-sm" (click)="sendMockOtp()">Send OTP Code</button>
+              </div>
+              
+              <div *ngIf="otpSent">
+                <div class="form-group">
+                  <label class="form-label" for="reauthOtp">Enter 6-Digit OTP</label>
+                  <input type="text" id="reauthOtp" [(ngModel)]="authOtp" class="form-input text-center" placeholder="123456" maxLength="6">
+                </div>
+                <p class="otp-hint">Simulated OTP Sent: <strong>{{ sentOtpCode }}</strong></p>
+              </div>
+            </div>
+
+            <div class="alert alert-danger" *ngIf="authError">
+              {{ authError }}
+            </div>
+
+            <div class="modal-actions">
+              <button class="btn btn-secondary" (click)="cancelAuth()">Cancel</button>
+              <button class="btn btn-primary" (click)="verifyAuth()" [disabled]="authMethod === 'otp' && !otpSent">Verify & Authorize</button>
+            </div>
+          </div>
         </div>
 
         <!-- Success Modal/State -->
@@ -38,8 +85,12 @@ import { Booking } from '../../models/booking.model';
               <span class="value price-lbl">\${{ booking.totalPrice }}</span>
             </div>
             <div class="receipt-row">
-              <span class="label">Route</span>
-              <span class="value">{{ booking.flight.origin }} &rarr; {{ booking.flight.destination }}</span>
+              <span class="label">Payment Method</span>
+              <span class="value capitalize">{{ paymentMethod }}</span>
+            </div>
+            <div class="receipt-row">
+              <span class="label">Status</span>
+              <span class="value text-success">Paid & Secured via SSL</span>
             </div>
           </div>
 
@@ -52,19 +103,35 @@ import { Booking } from '../../models/booking.model';
         <!-- Main Form Column -->
         <div class="form-column" *ngIf="paymentStatus !== 'success'">
           <div class="form-card glass-panel">
-            <h2 class="title">Secure Payment</h2>
-            <p class="subtitle">Complete your transaction using credit or debit card.</p>
+            <h2 class="title">Secure Checkout</h2>
+            <p class="subtitle">Select your preferred payment method and authorize.</p>
             
             <div class="alert alert-danger" *ngIf="errorMessage">
               {{ errorMessage }}
             </div>
 
-            <!-- Card flip illustration -->
-            <div class="card-container">
+            <!-- Payment Method Tabs -->
+            <div class="payment-method-selector">
+              <button class="method-tab" [class.active]="paymentMethod === 'card'" (click)="setPaymentMethod('card')">
+                💳 Credit Card
+              </button>
+              <button class="method-tab" [class.active]="paymentMethod === 'debit'" (click)="setPaymentMethod('debit')">
+                🏧 Debit Card
+              </button>
+              <button class="method-tab" [class.active]="paymentMethod === 'applepay'" (click)="setPaymentMethod('applepay')">
+                 Apple Pay
+              </button>
+              <button class="method-tab" [class.active]="paymentMethod === 'googlepay'" (click)="setPaymentMethod('googlepay')">
+                🤖 Google Pay
+              </button>
+            </div>
+
+            <!-- Card flip illustration (Only for Cards) -->
+            <div class="card-container" *ngIf="paymentMethod === 'card' || paymentMethod === 'debit'">
               <div class="credit-card" [class.flipped]="isCvvFocused">
                 <!-- Front Side -->
                 <div class="card-side card-front">
-                  <div class="card-logo">VISA</div>
+                  <div class="card-logo">{{ paymentMethod === 'debit' ? 'DEBIT' : 'VISA' }}</div>
                   <div class="card-chip"></div>
                   <div class="card-num">
                     {{ formatCardNumber(paymentForm.value.cardNumber) || '•••• •••• •••• ••••' }}
@@ -72,7 +139,7 @@ import { Booking } from '../../models/booking.model';
                   <div class="card-footer-meta">
                     <div class="card-holder">
                       <span class="meta-lbl">Card Holder</span>
-                      <span class="meta-val">{{ booking.user.firstName + ' ' + booking.user.lastName | uppercase }}</span>
+                      <span class="meta-val">{{ paymentForm.value.cardholderName || 'CARDHOLDER NAME' | uppercase }}</span>
                     </div>
                     <div class="card-expiry">
                       <span class="meta-lbl">Expires</span>
@@ -93,8 +160,22 @@ import { Booking } from '../../models/booking.model';
               </div>
             </div>
 
-            <!-- Payment Form -->
-            <form [formGroup]="paymentForm" (ngSubmit)="onSubmit()">
+            <!-- Standard Card Form -->
+            <form [formGroup]="paymentForm" (ngSubmit)="onPreSubmit()" *ngIf="paymentMethod === 'card' || paymentMethod === 'debit'">
+              <div class="form-group">
+                <label class="form-label" for="cardholderName">Cardholder Name</label>
+                <input 
+                  type="text" 
+                  id="cardholderName" 
+                  formControlName="cardholderName" 
+                  class="form-input" 
+                  placeholder="John Doe"
+                  [class.error-border]="submitted && f['cardholderName'].errors">
+                <div *ngIf="submitted && f['cardholderName'].errors" class="error-msg">
+                  Cardholder name is required
+                </div>
+              </div>
+
               <div class="form-group">
                 <label class="form-label" for="cardNumber">Card Number</label>
                 <input 
@@ -144,10 +225,43 @@ import { Booking } from '../../models/booking.model';
                 </div>
               </div>
 
+              <div class="form-group">
+                <label class="form-label" for="billingAddress">Billing Address</label>
+                <input 
+                  type="text" 
+                  id="billingAddress" 
+                  formControlName="billingAddress" 
+                  class="form-input" 
+                  placeholder="123 Main St, New York, NY 10001"
+                  [class.error-border]="submitted && f['billingAddress'].errors">
+                <div *ngIf="submitted && f['billingAddress'].errors" class="error-msg">
+                  Billing address is required
+                </div>
+              </div>
+
               <button type="submit" class="btn btn-primary submit-btn">
-                Pay Now &middot; \${{ booking.totalPrice }}
+                Verify & Pay &middot; \${{ booking.totalPrice }}
               </button>
             </form>
+
+            <!-- Express Mobile/Apple Pay Layout -->
+            <div class="express-checkout-container" *ngIf="paymentMethod === 'applepay' || paymentMethod === 'googlepay'">
+              <div class="express-badge">Express Secure Checkout</div>
+              <p>Pay instantly using your default device wallet and biometric signature.</p>
+              
+              <button class="express-pay-btn" [class.apple]="paymentMethod === 'applepay'" [class.google]="paymentMethod === 'googlepay'" (click)="onExpressPreSubmit()">
+                <span *ngIf="paymentMethod === 'applepay'"> Pay with Apple Pay</span>
+                <span *ngIf="paymentMethod === 'googlepay'">🤖 Pay with Google Pay</span>
+              </button>
+            </div>
+
+            <!-- Security Trust Indicators -->
+            <div class="security-badges-container">
+              <span class="sec-badge">🔒 SSL Secure Payment</span>
+              <span class="sec-badge">🛡️ Encrypted Transaction</span>
+              <span class="sec-badge">✅ Trusted Gateway</span>
+            </div>
+
           </div>
         </div>
 
@@ -234,6 +348,144 @@ import { Booking } from '../../models/booking.model';
       color: var(--text-secondary);
     }
     
+    /* Security Verification Modal */
+    .auth-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1500;
+    }
+    .auth-modal {
+      width: 100%;
+      max-width: 450px;
+      padding: 30px;
+      text-align: center;
+      border: 1px solid var(--glass-border);
+    }
+    .auth-title {
+      font-family: var(--font-title);
+      font-size: 1.35rem;
+      margin-bottom: 8px;
+    }
+    .auth-desc {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+    }
+    .auth-toggle {
+      display: flex;
+      background: rgba(255,255,255,0.05);
+      border-radius: 8px;
+      padding: 4px;
+      margin-bottom: 20px;
+    }
+    .toggle-btn {
+      flex: 1;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      padding: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 6px;
+    }
+    .toggle-btn.active {
+      background: var(--primary);
+      color: #fff;
+    }
+    .auth-body {
+      margin-bottom: 24px;
+      text-align: left;
+    }
+    .otp-actions {
+      text-align: center;
+    }
+    .otp-actions p {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+    .otp-hint {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    /* Express payment buttons */
+    .express-checkout-container {
+      text-align: center;
+      padding: 30px 10px;
+      border: 1.5px dashed var(--glass-border);
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+    .express-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--primary);
+      background: var(--primary-glow);
+      border-radius: 4px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .express-checkout-container p {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+    .express-pay-btn {
+      width: 100%;
+      height: 48px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 1.05rem;
+      cursor: pointer;
+      border: none;
+      transition: transform 0.2s ease;
+    }
+    .express-pay-btn:hover {
+      transform: scale(1.02);
+    }
+    .express-pay-btn.apple {
+      background: #000;
+      color: #fff;
+    }
+    .express-pay-btn.google {
+      background: #f1f5f9;
+      color: #0f172a;
+      border: 1px solid #cbd5e1;
+    }
+
+    /* Security trust badges */
+    .security-badges-container {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-top: 24px;
+      border-top: 1px solid var(--glass-border);
+      padding-top: 20px;
+    }
+    .sec-badge {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
     /* Confirmation success panel */
     .confirmation-panel {
       grid-column: 1 / -1;
@@ -244,11 +496,6 @@ import { Booking } from '../../models/booking.model';
       flex-direction: column;
       align-items: center;
       text-align: center;
-      animation: zoomIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-    @keyframes zoomIn {
-      from { transform: scale(0.8); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
     }
     .success-icon {
       width: 80px;
@@ -322,8 +569,34 @@ import { Booking } from '../../models/booking.model';
     }
     .subtitle {
       color: var(--text-secondary);
-      margin-bottom: 32px;
+      margin-bottom: 24px;
       font-size: 0.95rem;
+    }
+
+    /* Tabs */
+    .payment-method-selector {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      overflow-x: auto;
+    }
+    .method-tab {
+      flex: 1;
+      padding: 10px;
+      background: transparent;
+      border: 1px solid var(--glass-border);
+      color: var(--text-secondary);
+      font-family: var(--font-title);
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: var(--transition-fast);
+    }
+    .method-tab.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: transparent;
     }
     
     /* 3D Card Flip CSS */
@@ -540,10 +813,21 @@ export class PaymentComponent implements OnInit {
   paymentForm!: FormGroup;
   submitted = false;
   processing = false;
+  biometricProcessing = false;
   paymentStatus: 'pending' | 'success' | 'failed' = 'pending';
   transactionId = '';
   errorMessage = '';
   isCvvFocused = false;
+
+  // Enhancements
+  paymentMethod: 'card' | 'debit' | 'applepay' | 'googlepay' = 'card';
+  showAuthModal = false;
+  authMethod: 'password' | 'otp' = 'password';
+  authPassword = '';
+  authOtp = '';
+  otpSent = false;
+  sentOtpCode = '';
+  authError = '';
 
   constructor(
     private fb: FormBuilder,
@@ -560,9 +844,11 @@ export class PaymentComponent implements OnInit {
     }
 
     this.paymentForm = this.fb.group({
+      cardholderName: ['', Validators.required],
       cardNumber: ['', [Validators.required, Validators.pattern('^[0-9]{16}$')]],
       expiryDate: ['', [Validators.required, Validators.pattern('^(0[1-9]|1[0-2])\\/?([0-9]{2})$')]],
-      cvv: ['', [Validators.required, Validators.pattern('^[0-9]{3}$')]]
+      cvv: ['', [Validators.required, Validators.pattern('^[0-9]{3}$')]],
+      billingAddress: ['', Validators.required]
     });
   }
 
@@ -571,7 +857,7 @@ export class PaymentComponent implements OnInit {
       .subscribe({
         next: (data) => {
           this.booking = data;
-          if (this.booking.status === 'CONFIRMED') {
+          if (this.booking.status === 'CONFIRMED' || this.booking.status === 'PAID') {
             this.paymentStatus = 'success';
             this.transactionId = 'ALREADY_PAID';
           }
@@ -583,28 +869,108 @@ export class PaymentComponent implements OnInit {
       });
   }
 
+  setPaymentMethod(method: 'card' | 'debit' | 'applepay' | 'googlepay'): void {
+    this.paymentMethod = method;
+    this.errorMessage = '';
+    
+    // Adjust validators dynamically based on selection
+    if (method === 'applepay' || method === 'googlepay') {
+      this.paymentForm.get('cardholderName')?.clearValidators();
+      this.paymentForm.get('cardNumber')?.clearValidators();
+      this.paymentForm.get('expiryDate')?.clearValidators();
+      this.paymentForm.get('cvv')?.clearValidators();
+      this.paymentForm.get('billingAddress')?.clearValidators();
+    } else {
+      this.paymentForm.get('cardholderName')?.setValidators([Validators.required]);
+      this.paymentForm.get('cardNumber')?.setValidators([Validators.required, Validators.pattern('^[0-9]{16}$')]);
+      this.paymentForm.get('expiryDate')?.setValidators([Validators.required, Validators.pattern('^(0[1-9]|1[0-2])\\/?([0-9]{2})$')]);
+      this.paymentForm.get('cvv')?.setValidators([Validators.required, Validators.pattern('^[0-9]{3}$')]);
+      this.paymentForm.get('billingAddress')?.setValidators([Validators.required]);
+    }
+    
+    this.paymentForm.get('cardholderName')?.updateValueAndValidity();
+    this.paymentForm.get('cardNumber')?.updateValueAndValidity();
+    this.paymentForm.get('expiryDate')?.updateValueAndValidity();
+    this.paymentForm.get('cvv')?.updateValueAndValidity();
+    this.paymentForm.get('billingAddress')?.updateValueAndValidity();
+  }
+
   get f() { return this.paymentForm.controls; }
 
-  onSubmit(): void {
+  // Re-authentication Controls
+  setAuthMethod(method: 'password' | 'otp'): void {
+    this.authMethod = method;
+    this.authError = '';
+    this.authOtp = '';
+    this.authPassword = '';
+  }
+
+  sendMockOtp(): void {
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    this.sentOtpCode = code;
+    this.otpSent = true;
+  }
+
+  onPreSubmit(): void {
     this.submitted = true;
     this.errorMessage = '';
-
     if (this.paymentForm.invalid) {
       return;
     }
+    this.showAuthModal = true;
+  }
 
+  onExpressPreSubmit(): void {
+    this.biometricProcessing = true;
+    setTimeout(() => {
+      this.biometricProcessing = false;
+      this.showAuthModal = true;
+    }, 1800);
+  }
+
+  cancelAuth(): void {
+    this.showAuthModal = false;
+    this.authPassword = '';
+    this.authOtp = '';
+    this.otpSent = false;
+    this.authError = '';
+  }
+
+  verifyAuth(): void {
+    this.authError = '';
+    
+    if (this.authMethod === 'password') {
+      if (!this.authPassword.trim()) {
+        this.authError = 'Password is required.';
+        return;
+      }
+      // Simulate successful re-auth
+      this.showAuthModal = false;
+      this.executePayment();
+    } else {
+      if (this.authOtp !== this.sentOtpCode) {
+        this.authError = 'Invalid One-Time Password code. Please enter the correct code.';
+        return;
+      }
+      this.showAuthModal = false;
+      this.executePayment();
+    }
+  }
+
+  executePayment(): void {
     this.processing = true;
 
     const requestPayload = {
       bookingReference: this.booking.bookingReference,
       amount: this.booking.totalPrice,
-      paymentMethod: 'Credit Card',
-      cardNumber: this.paymentForm.value.cardNumber,
-      cvv: this.paymentForm.value.cvv,
-      expiryDate: this.paymentForm.value.expiryDate
+      paymentMethod: this.paymentMethod === 'applepay' ? 'Apple Pay' : 
+                     this.paymentMethod === 'googlepay' ? 'Google Pay' : 
+                     this.paymentMethod === 'debit' ? 'Debit Card' : 'Credit Card',
+      cardNumber: this.paymentForm.value.cardNumber || '4111222233334444',
+      cvv: this.paymentForm.value.cvv || '123',
+      expiryDate: this.paymentForm.value.expiryDate || '12/28'
     };
 
-    // Simulate network latency (2 seconds)
     setTimeout(() => {
       this.paymentService.processPayment(requestPayload)
         .subscribe({
@@ -615,26 +981,26 @@ export class PaymentComponent implements OnInit {
               this.paymentStatus = 'success';
             } else {
               this.paymentStatus = 'failed';
-              this.errorMessage = 'Card payment failed. Please check your details and try again (Do not use test code 0000000000000000).';
+              this.errorMessage = 'Card authorization failed. Please try again.';
             }
           },
           error: (err) => {
             console.error('Payment failed', err);
             this.processing = false;
             this.paymentStatus = 'failed';
-            this.errorMessage = err.error?.message || 'Payment server failed to authorize card.';
+            this.errorMessage = err.error?.message || 'Payment server failed to authorize transaction.';
           }
         });
     }, 2000);
   }
 
   downloadTicket(): void {
-    this.bookingService.generateTicket(this.booking.bookingReference)
+    this.bookingService.generateTicket(this.booking, this.paymentForm.value.cardNumber || '••••••••••••4111', this.transactionId)
       .subscribe(blob => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `ticket-${this.booking.bookingReference}.html`;
+        a.download = `e-ticket-${this.booking.bookingReference}.html`;
         a.click();
       });
   }

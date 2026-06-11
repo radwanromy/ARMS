@@ -107,12 +107,26 @@ import { Booking } from '../../models/booking.model';
                 Cancel Booking
               </button>
               
-              <!-- Download Boarding Pass -->
+              <!-- Download E-Ticket -->
               <button 
                 class="btn btn-secondary" 
                 *ngIf="booking.status === 'CONFIRMED'" 
                 (click)="downloadTicket(booking)">
-                Download Boarding Pass
+                Download E-Ticket
+              </button>
+
+              <!-- Manage Booking / Support options -->
+              <button 
+                class="btn btn-primary" 
+                *ngIf="booking.status !== 'CANCELLED' && booking.status !== 'PENDING'" 
+                (click)="navigate('/booking/modify/' + booking.bookingReference)">
+                Manage Booking
+              </button>
+              <button 
+                class="btn btn-secondary" 
+                *ngIf="booking.status === 'PENDING'" 
+                (click)="navigate('/booking/modify/' + booking.bookingReference)">
+                Manage Options
               </button>
 
               <!-- Pay Now link -->
@@ -270,7 +284,7 @@ import { Booking } from '../../models/booking.model';
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
       gap: 20px;
-      background: rgba(15, 23, 42, 0.3);
+      background: rgba(255, 255, 255, 0.5);
       padding: 16px;
       border-radius: 8px;
       border: 1px solid var(--glass-border);
@@ -450,12 +464,12 @@ export class BookingHistoryComponent implements OnInit {
   }
 
   downloadTicket(booking: Booking): void {
-    this.bookingService.generateTicket(booking.bookingReference)
+    this.bookingService.generateTicket(booking)
       .subscribe(blob => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `ticket-${booking.bookingReference}.html`;
+        a.download = `e-ticket-${booking.bookingReference}.html`;
         a.click();
       });
   }

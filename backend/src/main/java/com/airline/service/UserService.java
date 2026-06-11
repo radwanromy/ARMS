@@ -21,6 +21,7 @@ public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final NotificationService notificationService;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -54,6 +55,11 @@ public class UserService implements UserDetailsService {
                 .build();
 
         User savedUser = userRepository.save(user);
+        try {
+            notificationService.sendWelcomeEmail(savedUser);
+        } catch (Exception e) {
+            // Log error but proceed
+        }
         return convertToDTO(savedUser);
     }
 
@@ -78,6 +84,22 @@ public class UserService implements UserDetailsService {
         return convertToDTO(getCurrentUser());
     }
 
+    @Transactional
+    public UserDTO updateUserProfile(UserDTO dto) {
+        User user = getCurrentUser();
+        
+        user.setFirstName(dto.getFirstName());
+        user.setLastName(dto.getLastName());
+        user.setPhoneNumber(dto.getPhoneNumber());
+        user.setProfilePicture(dto.getProfilePicture());
+        user.setPassportNumber(dto.getPassportNumber());
+        user.setNationality(dto.getNationality());
+        user.setDateOfBirth(dto.getDateOfBirth());
+        
+        User savedUser = userRepository.save(user);
+        return convertToDTO(savedUser);
+    }
+
     public UserDTO convertToDTO(User user) {
         return UserDTO.builder()
                 .id(user.getId())
@@ -86,6 +108,10 @@ public class UserService implements UserDetailsService {
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .phoneNumber(user.getPhoneNumber())
+                .profilePicture(user.getProfilePicture())
+                .passportNumber(user.getPassportNumber())
+                .nationality(user.getNationality())
+                .dateOfBirth(user.getDateOfBirth())
                 .role(user.getRole())
                 .build();
     }

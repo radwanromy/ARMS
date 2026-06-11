@@ -41,4 +41,18 @@ public class ReservationController {
         reservationService.cancelReservation(bookingRef);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{bookingRef}/modify")
+    public ResponseEntity<ReservationDTO> modifyReservation(
+            @PathVariable String bookingRef, 
+            @RequestBody ReservationDTO modification) {
+        ReservationDTO updated = reservationService.modifyReservation(bookingRef, modification);
+        return ResponseEntity.ok(updated);
+    }
+
+    @GetMapping("/{bookingRef}/logs")
+    public ResponseEntity<List<com.airline.model.BookingAuditLog>> getBookingAuditLogs(@PathVariable String bookingRef) {
+        List<com.airline.model.BookingAuditLog> logs = reservationService.getBookingAuditLogs(bookingRef);
+        return ResponseEntity.ok(logs);
+    }
 }

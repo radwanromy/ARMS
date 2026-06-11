@@ -28,6 +28,27 @@ export class AuthService {
     return this.http.post<User>(`${this.apiUrl}/register`, user);
   }
 
+  getProfile(): Observable<User> {
+    return this.http.get<User>(`${this.apiUrl}/me`);
+  }
+
+  updateProfile(user: User): Observable<User> {
+    return this.http.put<User>(`${this.apiUrl}/profile`, user).pipe(
+      map(updatedUser => {
+        const currentUser = this.getCurrentUser();
+        if (currentUser) {
+          currentUser.firstName = updatedUser.firstName;
+          currentUser.lastName = updatedUser.lastName;
+          currentUser.profilePicture = updatedUser.profilePicture;
+          currentUser.theme = updatedUser.theme;
+          localStorage.setItem('currentUser', JSON.stringify(currentUser));
+          this.currentUserSubject.next(currentUser);
+        }
+        return updatedUser;
+      })
+    );
+  }
+
   login(credentials: any): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credentials).pipe(
       map(response => {

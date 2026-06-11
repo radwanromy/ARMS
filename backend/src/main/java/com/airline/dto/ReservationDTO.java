@@ -25,4 +25,9 @@ public class ReservationDTO {
     private LocalDateTime bookingDate;
     private UserDTO user;
     private List<PassengerDTO> passengers;
+    private String mealPreference;
+    private String specialAssistance;
+    private String contactEmail;
+    private String contactPhone;
+    private String modificationReason;
 }

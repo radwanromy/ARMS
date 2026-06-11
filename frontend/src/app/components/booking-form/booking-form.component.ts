@@ -3,7 +3,6 @@ import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { BookingService } from '../../services/booking.service';
 import { Flight, Seat } from '../../models/flight.model';
-import { Passenger } from '../../models/booking.model';
 
 @Component({
   selector: 'app-booking-form',
@@ -11,9 +10,9 @@ import { Passenger } from '../../models/booking.model';
     <div class="container">
       <div class="booking-grid" *ngIf="flight && selectedSeat; else errorTpl">
         <!-- Main Form Panel -->
-        <div class="form-card glass-panel">
+        <div class="form-card glass-panel animate-fade-in">
           <h2 class="title gradient-text">Passenger Details</h2>
-          <p class="subtitle">Please enter the traveler details exactly as shown on their passport.</p>
+          <p class="subtitle">Please enter the traveler details exactly as shown on their passport. All fields are required.</p>
 
           <form [formGroup]="bookingForm" (ngSubmit)="onSubmit()">
             <div formArrayName="passengers">
@@ -24,34 +23,78 @@ import { Passenger } from '../../models/booking.model';
                 
                 <h4 class="passenger-title">Traveler #{{ idx + 1 }}</h4>
                 
-                <div class="form-group">
-                  <label class="form-label" [for]="'fullName-' + idx">Full Name (First & Last Name)</label>
-                  <input 
-                    type="text" 
-                    [id]="'fullName-' + idx" 
-                    formControlName="fullName" 
-                    class="form-input" 
-                    placeholder="JOHN SMITH"
-                    [class.error-border]="submitted && passengerForm.get('fullName')?.errors">
-                  <div *ngIf="submitted && passengerForm.get('fullName')?.errors" class="error-msg">
-                    Full name is required
+                <!-- Separated First & Last Name -->
+                <div class="form-row">
+                  <div class="form-group col">
+                    <label class="form-label" [for]="'firstName-' + idx">First Name</label>
+                    <input 
+                      type="text" 
+                      [id]="'firstName-' + idx" 
+                      formControlName="firstName" 
+                      class="form-input" 
+                      placeholder="JOHN"
+                      [class.error-border]="submitted && passengerForm.get('firstName')?.errors">
+                    <div *ngIf="submitted && passengerForm.get('firstName')?.errors" class="error-msg">
+                      First name is required
+                    </div>
+                  </div>
+                  
+                  <div class="form-group col">
+                    <label class="form-label" [for]="'lastName-' + idx">Last Name</label>
+                    <input 
+                      type="text" 
+                      [id]="'lastName-' + idx" 
+                      formControlName="lastName" 
+                      class="form-input" 
+                      placeholder="SMITH"
+                      [class.error-border]="submitted && passengerForm.get('lastName')?.errors">
+                    <div *ngIf="submitted && passengerForm.get('lastName')?.errors" class="error-msg">
+                      Last name is required
+                    </div>
                   </div>
                 </div>
 
                 <div class="form-row">
                   <div class="form-group col">
                     <label class="form-label" [for]="'dateOfBirth-' + idx">Date of Birth</label>
-                    <input type="date" [id]="'dateOfBirth-' + idx" formControlName="dateOfBirth" class="form-input">
+                    <input 
+                      type="date" 
+                      [id]="'dateOfBirth-' + idx" 
+                      formControlName="dateOfBirth" 
+                      class="form-input"
+                      [class.error-border]="submitted && passengerForm.get('dateOfBirth')?.errors">
+                    <div *ngIf="submitted && passengerForm.get('dateOfBirth')?.errors" class="error-msg">
+                      Date of birth is required
+                    </div>
                   </div>
+                  
                   <div class="form-group col">
                     <label class="form-label" [for]="'nationality-' + idx">Nationality</label>
-                    <input type="text" [id]="'nationality-' + idx" formControlName="nationality" class="form-input" placeholder="Japanese">
+                    <input 
+                      type="text" 
+                      [id]="'nationality-' + idx" 
+                      formControlName="nationality" 
+                      class="form-input" 
+                      placeholder="Japanese"
+                      [class.error-border]="submitted && passengerForm.get('nationality')?.errors">
+                    <div *ngIf="submitted && passengerForm.get('nationality')?.errors" class="error-msg">
+                      Nationality is required
+                    </div>
                   </div>
                 </div>
 
                 <div class="form-group">
                   <label class="form-label" [for]="'passportNumber-' + idx">Passport Number</label>
-                  <input type="text" [id]="'passportNumber-' + idx" formControlName="passportNumber" class="form-input" placeholder="AB1234567">
+                  <input 
+                    type="text" 
+                    [id]="'passportNumber-' + idx" 
+                    formControlName="passportNumber" 
+                    class="form-input" 
+                    placeholder="AB1234567"
+                    [class.error-border]="submitted && passengerForm.get('passportNumber')?.errors">
+                  <div *ngIf="submitted && passengerForm.get('passportNumber')?.errors" class="error-msg">
+                    Passport number is required
+                  </div>
                 </div>
               </div>
             </div>
@@ -163,7 +206,7 @@ import { Passenger } from '../../models/booking.model';
     }
     .passenger-section {
       border: 1px solid var(--glass-border);
-      background: rgba(15, 23, 42, 0.2);
+      background: rgba(255, 255, 255, 0.3);
       border-radius: 12px;
       padding: 24px;
       margin-bottom: 32px;
@@ -235,7 +278,7 @@ import { Passenger } from '../../models/booking.model';
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: rgba(15, 23, 42, 0.4);
+      background: rgba(255, 255, 255, 0.5);
       padding: 16px;
       border-radius: 8px;
       border: 1px solid var(--glass-border);
@@ -288,7 +331,7 @@ import { Passenger } from '../../models/booking.model';
       color: #a855f7;
     }
     .price-summary {
-      background: rgba(15, 23, 42, 0.2);
+      background: rgba(255, 255, 255, 0.3);
       padding: 16px;
       border-radius: 8px;
       border: 1px dashed var(--glass-border);
@@ -366,10 +409,11 @@ export class BookingFormComponent implements OnInit {
     const passengerGroups = [];
     for (let i = 0; i < this.travelersCount; i++) {
       passengerGroups.push(this.fb.group({
-        fullName: ['', Validators.required],
-        dateOfBirth: [''],
-        passportNumber: [''],
-        nationality: ['']
+        firstName: ['', Validators.required],
+        lastName: ['', Validators.required],
+        dateOfBirth: ['', Validators.required],
+        passportNumber: ['', Validators.required],
+        nationality: ['', Validators.required]
       }));
     }
 
@@ -394,7 +438,12 @@ export class BookingFormComponent implements OnInit {
       flightId: this.flight.id!,
       seatNumber: this.selectedSeat.column + this.selectedSeat.row,
       seatClass: this.selectedSeat.class,
-      passengers: this.bookingForm.value.passengers
+      passengers: this.bookingForm.value.passengers.map((p: any) => ({
+        fullName: `${p.firstName.trim()} ${p.lastName.trim()}`,
+        dateOfBirth: p.dateOfBirth,
+        passportNumber: p.passportNumber,
+        nationality: p.nationality
+      }))
     };
 
     this.bookingService.makeReservation(requestPayload)

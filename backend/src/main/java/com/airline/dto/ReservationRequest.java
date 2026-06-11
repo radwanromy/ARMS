@@ -24,4 +24,8 @@ public class ReservationRequest {
     private String seatClass;
 
     private List<PassengerDTO> passengers;
+    private String mealPreference;
+    private String specialAssistance;
+    private String contactEmail;
+    private String contactPhone;
 }

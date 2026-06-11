@@ -17,5 +17,9 @@ public class UserDTO {
     private String firstName;
     private String lastName;
     private String phoneNumber;
+    private String profilePicture;
+    private String passportNumber;
+    private String nationality;
+    private java.time.LocalDate dateOfBirth;
     private Role role;
 }

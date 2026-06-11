@@ -7,7 +7,10 @@ import { AuthService } from '../../services/auth.service';
   selector: 'app-login',
   template: `
     <div class="login-wrapper">
-      <div class="login-card glass-panel">
+      <div class="login-card glass-panel animate-slide-down">
+        <div class="brand-logo-container">
+          <app-logo [size]="75" variant="hero"></app-logo>
+        </div>
         <h2 class="login-title">Sign In</h2>
         <p class="login-subtitle">Access your flight reservations</p>
         
@@ -68,6 +71,11 @@ import { AuthService } from '../../services/auth.service';
       width: 100%;
       max-width: 420px;
       padding: 40px;
+    }
+    .brand-logo-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 24px;
     }
     .login-title {
       font-family: var(--font-title);

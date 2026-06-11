@@ -13,6 +13,14 @@ import { SeatSelectionComponent } from './components/seat-selection/seat-selecti
 import { BookingFormComponent } from './components/booking-form/booking-form.component';
 import { PaymentComponent } from './components/payment/payment.component';
 import { BookingHistoryComponent } from './components/booking-history/booking-history.component';
+import { ProfileComponent } from './components/profile/profile.component';
+import { AdminBookingsComponent } from './components/admin-bookings/admin-bookings.component';
+import { LogoComponent } from './components/logo/logo.component';
+import { ThemeSwitcherComponent } from './components/theme-switcher/theme-switcher.component';
+import { BookingModifyComponent } from './components/booking-modify/booking-modify.component';
+import { ChatPanelComponent } from './components/chat-panel/chat-panel.component';
+import { SupportDashboardComponent } from './components/support-dashboard/support-dashboard.component';
+import { AIAssistantWidgetComponent } from './components/ai-assistant-widget/ai-assistant-widget.component';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 
 @NgModule({
@@ -25,7 +33,15 @@ import { AuthInterceptor } from './interceptors/auth.interceptor';
     SeatSelectionComponent,
     BookingFormComponent,
     PaymentComponent,
-    BookingHistoryComponent
+    BookingHistoryComponent,
+    ProfileComponent,
+    AdminBookingsComponent,
+    LogoComponent,
+    ThemeSwitcherComponent,
+    BookingModifyComponent,
+    ChatPanelComponent,
+    SupportDashboardComponent,
+    AIAssistantWidgetComponent
   ],
   imports: [
     BrowserModule,
@@ -40,3 +56,4 @@ import { AuthInterceptor } from './interceptors/auth.interceptor';
   bootstrap: [AppComponent]
 })
 export class AppModule { }
+

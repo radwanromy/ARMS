@@ -37,9 +37,24 @@ public class User {
     @Column(name = "phone_number", length = 20)
     private String phoneNumber;
 
+    @Column(name = "profile_picture", columnDefinition = "LONGTEXT")
+    private String profilePicture;
+
+    @Column(name = "passport_number", length = 30)
+    private String passportNumber;
+
+    @Column(name = "nationality", length = 50)
+    private String nationality;
+
+    @Column(name = "date_of_birth")
+    private java.time.LocalDate dateOfBirth;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
+
+    @Column(name = "theme", length = 20, columnDefinition = "VARCHAR(20) DEFAULT 'LIGHT'")
+    private String theme = "LIGHT";
 
     @Column(name = "created_at", insertable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime createdAt;

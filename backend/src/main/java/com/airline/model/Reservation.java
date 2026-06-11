@@ -45,6 +45,18 @@ public class Reservation {
     @Column(nullable = false)
     private ReservationStatus status;
 
+    @Column(name = "meal_preference", length = 50, columnDefinition = "VARCHAR(50) DEFAULT 'NONE'")
+    private String mealPreference = "NONE";
+
+    @Column(name = "special_assistance", length = 100, columnDefinition = "VARCHAR(100) DEFAULT 'NONE'")
+    private String specialAssistance = "NONE";
+
+    @Column(name = "contact_email", length = 100)
+    private String contactEmail;
+
+    @Column(name = "contact_phone", length = 20)
+    private String contactPhone;
+
     @Column(name = "booking_date", insertable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime bookingDate;
 }

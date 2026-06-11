@@ -13,6 +13,10 @@ export interface ReservationRequest {
   seatNumber: string;
   seatClass: 'BUSINESS' | 'ECONOMY';
   passengers: Passenger[];
+  mealPreference?: string;
+  specialAssistance?: string;
+  contactEmail?: string;
+  contactPhone?: string;
 }
 
 export interface Booking {
@@ -22,10 +26,14 @@ export interface Booking {
   seatNumber: string;
   seatClass: 'BUSINESS' | 'ECONOMY';
   totalPrice: number;
-  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
+  status: 'PENDING' | 'CONFIRMED' | 'PAID' | 'TICKET_ISSUED' | 'CANCELLED' | 'COMPLETED';
   bookingDate: string;
   user: User;
   passengers: Passenger[];
+  mealPreference?: string;
+  specialAssistance?: string;
+  contactEmail?: string;
+  contactPhone?: string;
 }
 
 export interface PaymentRequest {

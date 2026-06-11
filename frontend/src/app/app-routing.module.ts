@@ -5,9 +5,15 @@ import { SeatSelectionComponent } from './components/seat-selection/seat-selecti
 import { BookingFormComponent } from './components/booking-form/booking-form.component';
 import { PaymentComponent } from './components/payment/payment.component';
 import { BookingHistoryComponent } from './components/booking-history/booking-history.component';
+import { ProfileComponent } from './components/profile/profile.component';
 import { LoginComponent } from './components/login/login.component';
 import { RegisterComponent } from './components/register/register.component';
+import { AdminBookingsComponent } from './components/admin-bookings/admin-bookings.component';
+import { BookingModifyComponent } from './components/booking-modify/booking-modify.component';
+import { SupportDashboardComponent } from './components/support-dashboard/support-dashboard.component';
 import { AuthGuard } from './guards/auth.guard';
+import { AdminGuard } from './guards/admin.guard';
+import { SupportGuard } from './guards/support.guard';
 
 const routes: Routes = [
   { path: '', redirectTo: '/search', pathMatch: 'full' },
@@ -16,6 +22,10 @@ const routes: Routes = [
   { path: 'booking', component: BookingFormComponent, canActivate: [AuthGuard] },
   { path: 'payment/:bookingId', component: PaymentComponent, canActivate: [AuthGuard] },
   { path: 'my-bookings', component: BookingHistoryComponent, canActivate: [AuthGuard] },
+  { path: 'booking/modify/:bookingRef', component: BookingModifyComponent, canActivate: [AuthGuard] },
+  { path: 'support/dashboard', component: SupportDashboardComponent, canActivate: [AuthGuard, SupportGuard] },
+  { path: 'profile', component: ProfileComponent, canActivate: [AuthGuard] },
+  { path: 'admin/bookings', component: AdminBookingsComponent, canActivate: [AuthGuard, AdminGuard] },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
   { path: '**', redirectTo: '/search' }
@@ -26,3 +36,4 @@ const routes: Routes = [
   exports: [RouterModule]
 })
 export class AppRoutingModule { }
+
