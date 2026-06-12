@@ -60,7 +60,7 @@ import { Flight } from '../../models/flight.model';
                   *ngFor="let item of originResults" 
                   (mousedown)="selectOrigin(item)">
                   <span class="airport-iata">{{ item.iataCode }} - {{ item.city }}</span>
-                  <span class="airport-details">{{ item.name }}, {{ item.countryIso }}</span>
+                  <span class="airport-details">{{ item.name }}, {{ item.countryName || item.countryIso }} {{ item.flagEmoji }}</span>
                 </div>
               </div>
             </div>
@@ -84,7 +84,7 @@ import { Flight } from '../../models/flight.model';
                   *ngFor="let item of destinationResults" 
                   (mousedown)="selectDestination(item)">
                   <span class="airport-iata">{{ item.iataCode }} - {{ item.city }}</span>
-                  <span class="airport-details">{{ item.name }}, {{ item.countryIso }}</span>
+                  <span class="airport-details">{{ item.name }}, {{ item.countryName || item.countryIso }} {{ item.flagEmoji }}</span>
                 </div>
               </div>
             </div>

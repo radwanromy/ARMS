@@ -33,6 +33,12 @@ public class Airport {
     @Column(name = "country_iso", nullable = false, length = 10)
     private String countryIso;
 
+    @Column(name = "country_name", length = 100)
+    private String countryName;
+
+    @Column(name = "flag_emoji", length = 10)
+    private String flagEmoji;
+
     @Column(nullable = false)
     private Double latitude;
 

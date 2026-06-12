@@ -28,4 +28,6 @@ public interface FlightRepository extends JpaRepository<Flight, Long> {
         @Param("startDate") LocalDateTime startDate,
         @Param("endDate") LocalDateTime endDate
     );
+
+    java.util.Optional<Flight> findByFlightNumber(String flightNumber);
 }

@@ -9,6 +9,8 @@ import com.airline.model.Flight;
 import com.airline.model.FlightStatus;
 import com.airline.repository.FlightRepository;
 import com.airline.repository.AirportRepository;
+import com.airline.repository.CountryRepository;
+import com.airline.repository.AirlineRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -28,6 +30,12 @@ class FlightServiceTest {
 
     @Mock
     private AirportRepository airportRepository;
+
+    @Mock
+    private CountryRepository countryRepository;
+
+    @Mock
+    private AirlineRepository airlineRepository;
 
     @Mock
     private MetricsService metricsService;

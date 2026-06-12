@@ -10,6 +10,15 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.util.Locale;
+import java.util.Currency;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.ArrayList;
 
 @Component
 @RequiredArgsConstructor
@@ -27,15 +36,15 @@ public class DatabaseSeeder implements CommandLineRunner {
         if (userRepository.count() == 0) {
             seedUsers();
         }
-        if (countryRepository.count() == 0 || countryRepository.findByIsoCodeIgnoreCase("BD").isEmpty()) {
+        if (countryRepository.count() < 100 || countryRepository.findByIsoCodeIgnoreCase("BD").isEmpty()) {
             countryRepository.deleteAll();
             seedCountries();
         }
-        if (airportRepository.count() == 0 || airportRepository.findByIataCodeIgnoreCase("DAC").isEmpty()) {
+        if (airportRepository.count() < 1000 || airportRepository.findByIataCodeIgnoreCase("DAC").isEmpty()) {
             airportRepository.deleteAll();
             seedAirports();
         }
-        if (airlineRepository.count() == 0 || airlineRepository.findByIataCodeIgnoreCase("BG").isEmpty()) {
+        if (airlineRepository.count() < 500 || airlineRepository.findByIataCodeIgnoreCase("BG").isEmpty()) {
             airlineRepository.deleteAll();
             seedAirlines();
         }
@@ -73,118 +82,368 @@ public class DatabaseSeeder implements CommandLineRunner {
     }
 
     private void seedCountries() {
-        List<Country> countries = Arrays.asList(
-                Country.builder().name("United States").isoCode("US").currency("USD").timezone("GMT-5").flagEmoji("🇺🇸").build(),
-                Country.builder().name("Japan").isoCode("JP").currency("JPY").timezone("GMT+9").flagEmoji("🇯🇵").build(),
-                Country.builder().name("United Kingdom").isoCode("GB").currency("GBP").timezone("GMT+0").flagEmoji("🇬🇧").build(),
-                Country.builder().name("France").isoCode("FR").currency("EUR").timezone("GMT+1").flagEmoji("🇫🇷").build(),
-                Country.builder().name("United Arab Emirates").isoCode("AE").currency("AED").timezone("GMT+4").flagEmoji("🇦🇪").build(),
-                Country.builder().name("Singapore").isoCode("SG").currency("SGD").timezone("GMT+8").flagEmoji("🇸🇬").build(),
-                Country.builder().name("Australia").isoCode("AU").currency("AUD").timezone("GMT+10").flagEmoji("🇦🇺").build(),
-                Country.builder().name("Germany").isoCode("DE").currency("EUR").timezone("GMT+1").flagEmoji("🇩🇪").build(),
-                Country.builder().name("China").isoCode("CN").currency("CNY").timezone("GMT+8").flagEmoji("🇨🇳").build(),
-                Country.builder().name("India").isoCode("IN").currency("INR").timezone("GMT+5.5").flagEmoji("🇮🇳").build(),
-                Country.builder().name("South Korea").isoCode("KR").currency("KRW").timezone("GMT+9").flagEmoji("🇰🇷").build(),
-                Country.builder().name("Saudi Arabia").isoCode("SA").currency("SAR").timezone("GMT+3").flagEmoji("🇸🇦").build(),
-                Country.builder().name("Canada").isoCode("CA").currency("CAD").timezone("GMT-5").flagEmoji("🇨🇦").build(),
-                Country.builder().name("Brazil").isoCode("BR").currency("BRL").timezone("GMT-3").flagEmoji("🇧🇷").build(),
-                Country.builder().name("Mexico").isoCode("MX").currency("MXN").timezone("GMT-6").flagEmoji("🇲🇽").build(),
-                Country.builder().name("Thailand").isoCode("TH").currency("THB").timezone("GMT+7").flagEmoji("🇹🇭").build(),
-                Country.builder().name("Malaysia").isoCode("MY").currency("MYR").timezone("GMT+8").flagEmoji("🇲🇾").build(),
-                Country.builder().name("Indonesia").isoCode("ID").currency("IDR").timezone("GMT+7").flagEmoji("🇮🇩").build(),
-                Country.builder().name("Spain").isoCode("ES").currency("EUR").timezone("GMT+1").flagEmoji("🇪🇸").build(),
-                Country.builder().name("Italy").isoCode("IT").currency("EUR").timezone("GMT+1").flagEmoji("🇮🇹").build(),
-                Country.builder().name("Bangladesh").isoCode("BD").currency("BDT").timezone("GMT+6").flagEmoji("🇧🇩").build()
-        );
-        countryRepository.saveAll(countries);
-        System.out.println("Countries database seeded.");
+        System.out.println("Seeding countries from dataset...");
+        List<Country> countriesToSave = new ArrayList<>();
+        Set<String> addedIsos = new HashSet<>();
+        Set<String> addedNames = new HashSet<>();
+
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(
+                new org.springframework.core.io.ClassPathResource("data/countries.dat").getInputStream(),
+                java.nio.charset.StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                List<String> fields = parseCsvLine(line);
+                if (fields.size() < 2) continue;
+                String name = fields.get(0);
+                String iso = fields.get(1);
+
+                if (iso == null || iso.isEmpty() || "N".equalsIgnoreCase(iso) || "\\N".equalsIgnoreCase(iso)) {
+                    continue;
+                }
+
+                String normalizedName = normalizeCountryName(name);
+                String normalizedIso = iso.trim().toUpperCase();
+
+                if (addedIsos.contains(normalizedIso) || addedNames.contains(normalizedName)) {
+                    continue;
+                }
+
+                String currency = getCurrencyForCountry(normalizedIso);
+                String timezone = getTimezoneForCountry(normalizedIso);
+                String flagEmoji = getFlagEmoji(normalizedIso);
+
+                Country country = Country.builder()
+                        .name(name.trim())
+                        .isoCode(normalizedIso)
+                        .currency(currency)
+                        .timezone(timezone)
+                        .flagEmoji(flagEmoji)
+                        .build();
+
+                countriesToSave.add(country);
+                addedIsos.add(normalizedIso);
+                addedNames.add(normalizedName);
+            }
+            countryRepository.saveAll(countriesToSave);
+            System.out.println("Seeded " + countriesToSave.size() + " countries.");
+        } catch (Exception e) {
+            System.err.println("Error seeding countries: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private void seedAirports() {
-        List<Airport> airports = Arrays.asList(
-                // Japan
-                Airport.builder().name("Tokyo Haneda Airport").iataCode("HND").icaoCode("RJTT").city("Tokyo").countryIso("JP").latitude(35.5494).longitude(139.7798).timezone("GMT+9").type(AirportType.INTERNATIONAL).build(),
-                Airport.builder().name("Tokyo Narita Airport").iataCode("NRT").icaoCode("RJAA").city("Tokyo").countryIso("JP").latitude(35.7720).longitude(140.3929).timezone("GMT+9").type(AirportType.INTERNATIONAL).build(),
-                Airport.builder().name("Osaka Itami Airport").iataCode("ITM").icaoCode("RJOO").city("Osaka").countryIso("JP").latitude(34.7855).longitude(135.4382).timezone("GMT+9").type(AirportType.DOMESTIC).build(),
-                Airport.builder().name("New Chitose Airport").iataCode("CTS").icaoCode("RJCC").city("Sapporo").countryIso("JP").latitude(42.7752).longitude(141.6923).timezone("GMT+9").type(AirportType.DOMESTIC).build(),
-                Airport.builder().name("Fukuoka Airport").iataCode("FUK").icaoCode("RJFF").city("Fukuoka").countryIso("JP").latitude(33.5859).longitude(130.4507).timezone("GMT+9").type(AirportType.DOMESTIC).build(),
-                
-                // US
-                Airport.builder().name("John F. Kennedy International Airport").iataCode("JFK").icaoCode("KJFK").city("New York").countryIso("US").latitude(40.6398).longitude(-73.7789).timezone("GMT-5").type(AirportType.INTERNATIONAL).build(),
-                Airport.builder().name("Los Angeles International Airport").iataCode("LAX").icaoCode("KLAX").city("Los Angeles").countryIso("US").latitude(33.9416).longitude(-118.4085).timezone("GMT-8").type(AirportType.INTERNATIONAL).build(),
-                Airport.builder().name("San Francisco International Airport").iataCode("SFO").icaoCode("KSFO").city("San Francisco").countryIso("US").latitude(37.6190).longitude(-122.3749).timezone("GMT-8").type(AirportType.INTERNATIONAL).build(),
-                Airport.builder().name("Chicago O'Hare International Airport").iataCode("ORD").icaoCode("KORD").city("Chicago").countryIso("US").latitude(41.9742).longitude(-87.9073).timezone("GMT-6").type(AirportType.INTERNATIONAL).build(),
-                Airport.builder().name("Daniel K. Inouye International Airport").iataCode("HNL").icaoCode("PHNL").city("Honolulu").countryIso("US").latitude(21.3187).longitude(-157.9225).timezone("GMT-10").type(AirportType.DOMESTIC).build(),
-                Airport.builder().name("Seattle-Tacoma International Airport").iataCode("SEA").icaoCode("KSEA").city("Seattle").countryIso("US").latitude(47.4489).longitude(-122.3093).timezone("GMT-8").type(AirportType.DOMESTIC).build(),
-                
-                // GB
-                Airport.builder().name("London Heathrow Airport").iataCode("LHR").icaoCode("EGLL").city("London").countryIso("GB").latitude(51.4700).longitude(-0.4543).timezone("GMT+0").type(AirportType.INTERNATIONAL).build(),
-                Airport.builder().name("London Gatwick Airport").iataCode("LGW").icaoCode("EGKK").city("London").countryIso("GB").latitude(51.1481).longitude(-0.1903).timezone("GMT+0").type(AirportType.INTERNATIONAL).build(),
-                
-                // FR
-                Airport.builder().name("Paris Charles de Gaulle Airport").iataCode("CDG").icaoCode("LFPG").city("Paris").countryIso("FR").latitude(49.0097).longitude(2.5479).timezone("GMT+1").type(AirportType.INTERNATIONAL).build(),
-                Airport.builder().name("Paris Orly Airport").iataCode("ORY").icaoCode("LFPO").city("Paris").countryIso("FR").latitude(48.7262).longitude(2.3652).timezone("GMT+1").type(AirportType.INTERNATIONAL).build(),
-                
-                // AE
-                Airport.builder().name("Dubai International Airport").iataCode("DXB").icaoCode("OMDB").city("Dubai").countryIso("AE").latitude(25.2532).longitude(55.3657).timezone("GMT+4").type(AirportType.INTERNATIONAL).build(),
-                
-                // SG
-                Airport.builder().name("Singapore Changi Airport").iataCode("SIN").icaoCode("WSSS").city("Singapore").countryIso("SG").latitude(1.3644).longitude(103.9915).timezone("GMT+8").type(AirportType.INTERNATIONAL).build(),
-                
-                // AU
-                Airport.builder().name("Sydney Kingsford Smith Airport").iataCode("SYD").icaoCode("YSSY").city("Sydney").countryIso("AU").latitude(-33.9461).longitude(151.1772).timezone("GMT+10").type(AirportType.INTERNATIONAL).build(),
-                
-                // DE
-                Airport.builder().name("Frankfurt Airport").iataCode("FRA").icaoCode("EDDF").city("Frankfurt").countryIso("DE").latitude(50.0379).longitude(8.5622).timezone("GMT+1").type(AirportType.INTERNATIONAL).build(),
-                Airport.builder().name("Munich Airport").iataCode("MUC").icaoCode("EDDM").city("Munich").countryIso("DE").latitude(48.3538).longitude(11.7861).timezone("GMT+1").type(AirportType.INTERNATIONAL).build(),
-                
-                // CN
-                Airport.builder().name("Beijing Capital International Airport").iataCode("PEK").icaoCode("ZBAA").city("Beijing").countryIso("CN").latitude(40.0801).longitude(116.5846).timezone("GMT+8").type(AirportType.INTERNATIONAL).build(),
-                Airport.builder().name("Shanghai Pudong International Airport").iataCode("PVG").icaoCode("ZSPD").city("Shanghai").countryIso("CN").latitude(31.1443).longitude(121.8083).timezone("GMT+8").type(AirportType.INTERNATIONAL).build(),
-                
-                // IN
-                Airport.builder().name("Indira Gandhi International Airport").iataCode("DEL").icaoCode("VIDP").city("Delhi").countryIso("IN").latitude(28.5687).longitude(77.1060).timezone("GMT+5.5").type(AirportType.INTERNATIONAL).build(),
-                Airport.builder().name("Chhatrapati Shivaji Maharaj International Airport").iataCode("BOM").icaoCode("VABB").city("Mumbai").countryIso("IN").latitude(19.0896).longitude(72.8656).timezone("GMT+5.5").type(AirportType.INTERNATIONAL).build(),
-                
-                // KR
-                Airport.builder().name("Seoul Incheon International Airport").iataCode("ICN").icaoCode("RKSI").city("Seoul").countryIso("KR").latitude(37.4602).longitude(126.4407).timezone("GMT+9").type(AirportType.INTERNATIONAL).build(),
-                
-                // SA
-                Airport.builder().name("King Abdulaziz International Airport").iataCode("JED").icaoCode("OEJN").city("Jeddah").countryIso("SA").latitude(21.6796).longitude(39.1565).timezone("GMT+3").type(AirportType.INTERNATIONAL).build(),
-                
-                // CA
-                Airport.builder().name("Toronto Pearson International Airport").iataCode("YYZ").icaoCode("CYYZ").city("Toronto").countryIso("CA").latitude(43.6777).longitude(-79.6248).timezone("GMT-5").type(AirportType.INTERNATIONAL).build(),
-                Airport.builder().name("Vancouver International Airport").iataCode("YVR").icaoCode("CYVR").city("Vancouver").countryIso("CA").latitude(49.1967).longitude(-123.1815).timezone("GMT-8").type(AirportType.INTERNATIONAL).build(),
-                
-                // BR
-                Airport.builder().name("São Paulo/Guarulhos International Airport").iataCode("GRU").icaoCode("SBGR").city("São Paulo").countryIso("BR").latitude(-23.4356).longitude(-46.4731).timezone("GMT-3").type(AirportType.INTERNATIONAL).build(),
-                
-                // BD
-                Airport.builder().name("Hazrat Shahjalal International Airport").iataCode("DAC").icaoCode("VGHS").city("Dhaka").countryIso("BD").latitude(23.8433).longitude(90.3978).timezone("GMT+6").type(AirportType.INTERNATIONAL).build()
-        );
-        airportRepository.saveAll(airports);
-        System.out.println("Airports database seeded with " + airports.size() + " international and domestic hubs.");
+        System.out.println("Seeding airports from dataset...");
+        List<Country> countries = countryRepository.findAll();
+        Map<String, String> countryNameToIso = new HashMap<>();
+        for (Country c : countries) {
+            countryNameToIso.put(normalizeCountryName(c.getName()), c.getIsoCode());
+        }
+
+        List<Airport> airportsToSave = new ArrayList<>();
+        Set<String> addedIatas = new HashSet<>();
+
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(
+                new org.springframework.core.io.ClassPathResource("data/airports.dat").getInputStream(),
+                java.nio.charset.StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                List<String> fields = parseCsvLine(line);
+                if (fields.size() < 12) continue;
+
+                String name = fields.get(1);
+                String city = fields.get(2);
+                String countryName = fields.get(3);
+                String iata = fields.get(4);
+                String icao = fields.get(5);
+                String latStr = fields.get(6);
+                String lonStr = fields.get(7);
+                String tzOffset = fields.get(9);
+
+                if (iata == null || iata.isEmpty() || "\\N".equalsIgnoreCase(iata) || iata.trim().length() != 3) {
+                    continue;
+                }
+
+                String cleanIata = iata.trim().toUpperCase();
+                if (addedIatas.contains(cleanIata)) {
+                    continue;
+                }
+
+                double latitude;
+                double longitude;
+                try {
+                    latitude = Double.parseDouble(latStr);
+                    longitude = Double.parseDouble(lonStr);
+                } catch (NumberFormatException e) {
+                    continue;
+                }
+
+                String countryIso = resolveCountryIso(countryName, countryNameToIso);
+                String flagEmoji = getFlagEmoji(countryIso);
+                String timezone = formatTimezoneOffset(tzOffset);
+
+                AirportType type = (name.toLowerCase().contains("intl") || name.toLowerCase().contains("international") || name.toLowerCase().contains("intercontinental"))
+                        ? AirportType.INTERNATIONAL : AirportType.DOMESTIC;
+
+                Airport airport = Airport.builder()
+                        .name(name.trim())
+                        .iataCode(cleanIata)
+                        .icaoCode(icao == null ? "" : icao.trim())
+                        .city(city == null ? "" : city.trim())
+                        .countryIso(countryIso)
+                        .countryName(countryName.trim())
+                        .flagEmoji(flagEmoji)
+                        .latitude(latitude)
+                        .longitude(longitude)
+                        .timezone(timezone)
+                        .type(type)
+                        .build();
+
+                airportsToSave.add(airport);
+                addedIatas.add(cleanIata);
+            }
+            airportRepository.saveAll(airportsToSave);
+            System.out.println("Seeded " + airportsToSave.size() + " airports.");
+        } catch (Exception e) {
+            System.err.println("Error seeding airports: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private void seedAirlines() {
-        List<Airline> airlines = Arrays.asList(
-                Airline.builder().name("Japan Airlines").iataCode("JL").countryIso("JP").build(),
-                Airline.builder().name("All Nippon Airways").iataCode("NH").countryIso("JP").build(),
-                Airline.builder().name("United Airlines").iataCode("UA").countryIso("US").build(),
-                Airline.builder().name("Delta Air Lines").iataCode("DL").countryIso("US").build(),
-                Airline.builder().name("British Airways").iataCode("BA").countryIso("GB").build(),
-                Airline.builder().name("Air France").iataCode("AF").countryIso("FR").build(),
-                Airline.builder().name("Emirates").iataCode("EK").countryIso("AE").build(),
-                Airline.builder().name("Singapore Airlines").iataCode("SQ").countryIso("SG").build(),
-                Airline.builder().name("Qantas").iataCode("QF").countryIso("AU").build(),
-                Airline.builder().name("Lufthansa").iataCode("LH").countryIso("DE").build(),
-                Airline.builder().name("Air China").iataCode("CA").countryIso("CN").build(),
-                Airline.builder().name("Air India").iataCode("AI").countryIso("IN").build(),
-                Airline.builder().name("Korean Air").iataCode("KE").countryIso("KR").build(),
-                Airline.builder().name("Biman Bangladesh Airlines").iataCode("BG").countryIso("BD").build()
-        );
-        airlineRepository.saveAll(airlines);
-        System.out.println("Airlines database seeded.");
+        System.out.println("Seeding airlines from dataset...");
+        List<Country> countries = countryRepository.findAll();
+        Map<String, String> countryNameToIso = new HashMap<>();
+        for (Country c : countries) {
+            countryNameToIso.put(normalizeCountryName(c.getName()), c.getIsoCode());
+        }
+
+        List<Airline> airlinesToSave = new ArrayList<>();
+        Set<String> addedIatas = new HashSet<>();
+        Set<String> addedNames = new HashSet<>();
+
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(
+                new org.springframework.core.io.ClassPathResource("data/airlines.dat").getInputStream(),
+                java.nio.charset.StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                List<String> fields = parseCsvLine(line);
+                if (fields.size() < 8) continue;
+
+                String name = fields.get(1);
+                String iata = fields.get(3);
+                String countryName = fields.get(6);
+                String active = fields.get(7);
+
+                if (!"Y".equalsIgnoreCase(active)) {
+                    continue;
+                }
+
+                if (iata == null || iata.isEmpty() || "\\N".equalsIgnoreCase(iata) || iata.trim().length() < 2) {
+                    continue;
+                }
+
+                String cleanIata = iata.trim().toUpperCase();
+                String cleanName = name.trim();
+                String normalizedName = normalizeCountryName(cleanName);
+
+                if (addedIatas.contains(cleanIata) || addedNames.contains(normalizedName)) {
+                    continue;
+                }
+
+                String countryIso = resolveCountryIso(countryName, countryNameToIso);
+
+                Airline airline = Airline.builder()
+                        .name(cleanName)
+                        .iataCode(cleanIata)
+                        .countryIso(countryIso)
+                        .build();
+
+                airlinesToSave.add(airline);
+                addedIatas.add(cleanIata);
+                addedNames.add(normalizedName);
+            }
+            airlineRepository.saveAll(airlinesToSave);
+            System.out.println("Seeded " + airlinesToSave.size() + " airlines.");
+        } catch (Exception e) {
+            System.err.println("Error seeding airlines: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private List<String> parseCsvLine(String line) {
+        List<String> result = new ArrayList<>();
+        if (line == null || line.isEmpty()) {
+            return result;
+        }
+        StringBuilder sb = new StringBuilder();
+        boolean inQuotes = false;
+        for (int i = 0; i < line.length(); i++) {
+            char c = line.charAt(i);
+            if (c == '"') {
+                inQuotes = !inQuotes;
+            } else if (c == ',' && !inQuotes) {
+                result.add(sb.toString().trim());
+                sb.setLength(0);
+            } else {
+                sb.append(c);
+            }
+        }
+        result.add(sb.toString().trim());
+        return result;
+    }
+
+    private String normalizeCountryName(String name) {
+        if (name == null) return "";
+        return name.toLowerCase()
+                .replaceAll("[^a-z0-9]", "")
+                .trim();
+    }
+
+    private String resolveCountryIso(String countryName, Map<String, String> nameToIsoMap) {
+        String normalized = normalizeCountryName(countryName);
+        if (nameToIsoMap.containsKey(normalized)) {
+            return nameToIsoMap.get(normalized);
+        }
+        if (normalized.contains("unitedstates") || normalized.equals("us")) return "US";
+        if (normalized.contains("unitedkingdom") || normalized.equals("uk")) return "GB";
+        if (normalized.contains("koreasouth") || normalized.contains("southkorea")) return "KR";
+        if (normalized.contains("koreanorth") || normalized.contains("northkorea")) return "KP";
+        if (normalized.contains("vietnam")) return "VN";
+        if (normalized.contains("russia")) return "RU";
+        if (normalized.contains("iran")) return "IR";
+        if (normalized.contains("syria")) return "SY";
+        if (normalized.contains("laos") || normalized.contains("laopeople")) return "LA";
+        if (normalized.contains("moldova")) return "MD";
+        if (normalized.contains("tanzania")) return "TZ";
+        if (normalized.contains("venezuela")) return "VE";
+        if (normalized.contains("taiwan")) return "TW";
+        if (normalized.contains("macau") || normalized.contains("macao")) return "MO";
+        if (normalized.contains("hongkong")) return "HK";
+        if (normalized.contains("palestine")) return "PS";
+        if (normalized.contains("bolivia")) return "BO";
+        if (normalized.contains("brunei")) return "BN";
+        if (normalized.contains("capeverde")) return "CV";
+        if (normalized.contains("congodemocratic") || normalized.contains("demrepcongo") || normalized.equals("drc")) return "CD";
+        if (normalized.contains("congo")) return "CG";
+        if (normalized.contains("ivorycoast") || normalized.contains("cotedivoire")) return "CI";
+        if (normalized.contains("falkland")) return "FK";
+        if (normalized.contains("micronesia")) return "FM";
+        if (normalized.contains("macedonia")) return "MK";
+        if (normalized.contains("reunion")) return "RE";
+
+        if (countryName != null && countryName.length() == 2) {
+            return countryName.toUpperCase();
+        }
+        return "US";
+    }
+
+    private String getFlagEmoji(String countryCode) {
+        if (countryCode == null || countryCode.length() != 2) {
+            return "🏳️";
+        }
+        try {
+            int firstLetter = Character.codePointAt(countryCode.toUpperCase(), 0) - 0x41 + 0x1F1E6;
+            int secondLetter = Character.codePointAt(countryCode.toUpperCase(), 1) - 0x41 + 0x1F1E6;
+            return new String(Character.toChars(firstLetter)) + new String(Character.toChars(secondLetter));
+        } catch (Exception e) {
+            return "🏳️";
+        }
+    }
+
+    private String getTimezoneForCountry(String iso) {
+        if (iso == null) return "GMT";
+        switch (iso.toUpperCase()) {
+            case "US": return "GMT-5";
+            case "JP": return "GMT+9";
+            case "GB": return "GMT+0";
+            case "FR": return "GMT+1";
+            case "DE": return "GMT+1";
+            case "CN": return "GMT+8";
+            case "IN": return "GMT+5.5";
+            case "KR": return "GMT+9";
+            case "SA": return "GMT+3";
+            case "CA": return "GMT-5";
+            case "BR": return "GMT-3";
+            case "MX": return "GMT-6";
+            case "TH": return "GMT+7";
+            case "MY": return "GMT+8";
+            case "ID": return "GMT+7";
+            case "ES": return "GMT+1";
+            case "IT": return "GMT+1";
+            case "BD": return "GMT+6";
+            case "AE": return "GMT+4";
+            case "SG": return "GMT+8";
+            case "AU": return "GMT+10";
+            case "RU": return "GMT+3";
+            case "CH": return "GMT+1";
+            case "NL": return "GMT+1";
+            case "NZ": return "GMT+12";
+            case "ZA": return "GMT+2";
+            case "TR": return "GMT+3";
+            case "QA": return "GMT+3";
+            case "HK": return "GMT+8";
+            default: return "GMT";
+        }
+    }
+
+    private String getCurrencyForCountry(String iso) {
+        if (iso == null) return "USD";
+        switch (iso.toUpperCase()) {
+            case "US": return "USD";
+            case "JP": return "JPY";
+            case "GB": return "GBP";
+            case "FR": case "DE": case "ES": case "IT": case "NL": case "BE": case "IE": case "FI": case "GR": case "PT": return "EUR";
+            case "CN": return "CNY";
+            case "IN": return "INR";
+            case "KR": return "KRW";
+            case "SA": return "SAR";
+            case "CA": return "CAD";
+            case "BR": return "BRL";
+            case "MX": return "MXN";
+            case "TH": return "THB";
+            case "MY": return "MYR";
+            case "ID": return "IDR";
+            case "BD": return "BDT";
+            case "AE": return "AED";
+            case "SG": return "SGD";
+            case "AU": return "AUD";
+            case "NZ": return "NZD";
+            case "RU": return "RUB";
+            case "CH": return "CHF";
+            case "ZA": return "ZAR";
+            case "TR": return "TRY";
+            case "QA": return "QAR";
+            case "HK": return "HKD";
+            default:
+                try {
+                    Locale locale = new Locale("", iso);
+                    Currency currency = Currency.getInstance(locale);
+                    return currency.getCurrencyCode();
+                } catch (Exception e) {
+                    return "USD";
+                }
+        }
+    }
+
+    private String formatTimezoneOffset(String offsetStr) {
+        try {
+            double offset = Double.parseDouble(offsetStr);
+            if (offset == 0) {
+                return "GMT+0";
+            }
+            String sign = offset > 0 ? "+" : "-";
+            double absOffset = Math.abs(offset);
+            int hours = (int) absOffset;
+            int minutes = (int) ((absOffset - hours) * 60);
+            if (minutes == 0) {
+                return "GMT" + sign + hours;
+            } else {
+                return "GMT" + sign + hours + "." + (minutes == 30 ? "5" : String.format("%02d", minutes));
+            }
+        } catch (Exception e) {
+            return "GMT+0";
+        }
     }
 
     private void seedFlights() {

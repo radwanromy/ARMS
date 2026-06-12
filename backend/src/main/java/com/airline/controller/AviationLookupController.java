@@ -64,7 +64,47 @@ public class AviationLookupController {
     // --- Airport Endpoints ---
     @GetMapping("/airports/search")
     public ResponseEntity<List<Airport>> searchAirports(@RequestParam String query) {
-        return ResponseEntity.ok(airportRepository.findByNameContainingIgnoreCaseOrIataCodeContainingIgnoreCaseOrCityContainingIgnoreCase(query, query, query));
+        if (query == null || query.trim().isEmpty()) {
+            return ResponseEntity.ok(List.of());
+        }
+        String cleanQuery = query.trim();
+        
+        // 1. Search countries matching the query
+        List<Country> matchingCountries = countryRepository.findByNameContainingIgnoreCaseOrIsoCodeContainingIgnoreCase(cleanQuery, cleanQuery);
+        
+        // 2. Fetch airports by name, IATA code, or city
+        List<Airport> airports = airportRepository.findByNameContainingIgnoreCaseOrIataCodeContainingIgnoreCaseOrCityContainingIgnoreCase(cleanQuery, cleanQuery, cleanQuery);
+        
+        // Convert to mutable list so we can append
+        List<Airport> result = new java.util.ArrayList<>(airports);
+        
+        if (!matchingCountries.isEmpty()) {
+            List<String> countryIsos = matchingCountries.stream()
+                    .map(Country::getIsoCode)
+                    .collect(java.util.stream.Collectors.toList());
+            
+            // 3. Find all airports located in these countries
+            List<Airport> countryAirports = airportRepository.findByCountryIsoInIgnoreCase(countryIsos);
+            
+            // Append and deduplicate (by IATA code)
+            java.util.Set<String> existingIatas = result.stream()
+                    .map(Airport::getIataCode)
+                    .collect(java.util.stream.Collectors.toSet());
+            
+            for (Airport a : countryAirports) {
+                if (!existingIatas.contains(a.getIataCode())) {
+                    result.add(a);
+                    existingIatas.add(a.getIataCode());
+                }
+            }
+        }
+        
+        // Limit results to a reasonable number to avoid huge payloads (e.g. max 100 results)
+        if (result.size() > 100) {
+            result = result.subList(0, 100);
+        }
+        
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/airports")
