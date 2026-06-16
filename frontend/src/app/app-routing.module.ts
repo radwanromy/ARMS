@@ -13,6 +13,7 @@ import { AdminAviationManagementComponent } from './components/admin-aviation-ma
 import { BookingModifyComponent } from './components/booking-modify/booking-modify.component';
 import { SupportDashboardComponent } from './components/support-dashboard/support-dashboard.component';
 import { FlightTrackerComponent } from './components/flight-tracker/flight-tracker.component';
+import { CorporateInfoComponent } from './components/corporate-info/corporate-info.component';
 import { AuthGuard } from './guards/auth.guard';
 import { AdminGuard } from './guards/admin.guard';
 import { SupportGuard } from './guards/support.guard';
@@ -21,6 +22,7 @@ const routes: Routes = [
   { path: '', redirectTo: '/search', pathMatch: 'full' },
   { path: 'search', component: FlightSearchComponent },
   { path: 'radar', component: FlightTrackerComponent },
+  { path: 'info/:page', component: CorporateInfoComponent },
   { path: 'seat-selection', component: SeatSelectionComponent, canActivate: [AuthGuard] },
   { path: 'booking', component: BookingFormComponent, canActivate: [AuthGuard] },
   { path: 'payment/:bookingId', component: PaymentComponent, canActivate: [AuthGuard] },

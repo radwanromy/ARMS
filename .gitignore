@@ -25,3 +25,7 @@ Desktop.ini
 **/*.log
 temp/
 tmp/
+
+# Downloaded files and tickets
+*.pdf
+

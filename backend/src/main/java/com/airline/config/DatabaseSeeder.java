@@ -51,7 +51,18 @@ public class DatabaseSeeder implements CommandLineRunner {
         if (flightRepository.count() < 100) {
             seedFlights();
         }
-        if (flightRepository.findAll().stream().noneMatch(f -> "DAC".equals(f.getOrigin()) || "DAC".equals(f.getDestination()))) {
+        long dacFlightCount = flightRepository.findAll().stream()
+                .filter(f -> "DAC".equals(f.getOrigin()) || "DAC".equals(f.getDestination()))
+                .count();
+        if (dacFlightCount < 1000) {
+            List<Flight> allFlights = flightRepository.findAll();
+            List<Flight> dacFlights = new ArrayList<>();
+            for (Flight f : allFlights) {
+                if ("DAC".equals(f.getOrigin()) || "DAC".equals(f.getDestination())) {
+                    dacFlights.add(f);
+                }
+            }
+            flightRepository.deleteAll(dacFlights);
             seedDhakaFlights();
         }
     }
@@ -711,15 +722,23 @@ public class DatabaseSeeder implements CommandLineRunner {
     }
 
     private void seedDhakaFlights() {
-        for (int day = 1; day <= 30; day++) {
-            LocalDateTime dep11 = LocalDateTime.of(2026, 6, day, 16, 30, 0);
-            Flight flight11 = Flight.builder()
-                    .flightNumber("BG363" + String.format("%02d", day))
+        System.out.println("Seeding 1000+ flights involving Dhaka (DAC)...");
+        java.time.LocalDate startDate = java.time.LocalDate.of(2026, 6, 1);
+        List<Flight> batch = new ArrayList<>();
+        
+        for (int i = 0; i < 180; i++) {
+            java.time.LocalDate date = startDate.plusDays(i);
+            int dateSuffix = (date.getMonthValue() * 100) + date.getDayOfMonth();
+            
+            // 1. HND <-> DAC (Biman Bangladesh: BG363/BG362)
+            LocalDateTime depBG_HND_DAC = date.atTime(16, 30, 0);
+            batch.add(Flight.builder()
+                    .flightNumber("BG363" + dateSuffix)
                     .airline("Biman Bangladesh Airlines")
                     .origin("HND")
                     .destination("DAC")
-                    .departureTime(dep11)
-                    .arrivalTime(dep11.plusHours(7))
+                    .departureTime(depBG_HND_DAC)
+                    .arrivalTime(depBG_HND_DAC.plusHours(7))
                     .economyPrice(BigDecimal.valueOf(520.00))
                     .businessPrice(BigDecimal.valueOf(1300.00))
                     .totalEconomySeats(180)
@@ -727,16 +746,16 @@ public class DatabaseSeeder implements CommandLineRunner {
                     .availableEconomySeats(180)
                     .availableBusinessSeats(24)
                     .status(FlightStatus.SCHEDULED)
-                    .build();
+                    .build());
 
-            LocalDateTime dep12 = LocalDateTime.of(2026, 6, day, 23, 45, 0);
-            Flight flight12 = Flight.builder()
-                    .flightNumber("BG362" + String.format("%02d", day))
+            LocalDateTime depBG_DAC_HND = date.atTime(23, 45, 0);
+            batch.add(Flight.builder()
+                    .flightNumber("BG362" + dateSuffix)
                     .airline("Biman Bangladesh Airlines")
                     .origin("DAC")
                     .destination("HND")
-                    .departureTime(dep12)
-                    .arrivalTime(dep12.plusHours(7))
+                    .departureTime(depBG_DAC_HND)
+                    .arrivalTime(depBG_DAC_HND.plusHours(7))
                     .economyPrice(BigDecimal.valueOf(540.00))
                     .businessPrice(BigDecimal.valueOf(1350.00))
                     .totalEconomySeats(180)
@@ -744,16 +763,52 @@ public class DatabaseSeeder implements CommandLineRunner {
                     .availableEconomySeats(180)
                     .availableBusinessSeats(24)
                     .status(FlightStatus.SCHEDULED)
-                    .build();
+                    .build());
 
-            LocalDateTime dep13 = LocalDateTime.of(2026, 6, day, 11, 0, 0);
-            Flight flight13 = Flight.builder()
-                    .flightNumber("BG361" + String.format("%02d", day))
+            // 2. HND <-> DAC (Japan Airlines: JL707/JL708)
+            LocalDateTime depJL_HND_DAC = date.atTime(9, 15, 0);
+            batch.add(Flight.builder()
+                    .flightNumber("JL707" + dateSuffix)
+                    .airline("Japan Airlines")
+                    .origin("HND")
+                    .destination("DAC")
+                    .departureTime(depJL_HND_DAC)
+                    .arrivalTime(depJL_HND_DAC.plusHours(6).plusMinutes(45))
+                    .economyPrice(BigDecimal.valueOf(680.00))
+                    .businessPrice(BigDecimal.valueOf(1700.00))
+                    .totalEconomySeats(200)
+                    .totalBusinessSeats(30)
+                    .availableEconomySeats(200)
+                    .availableBusinessSeats(30)
+                    .status(FlightStatus.SCHEDULED)
+                    .build());
+
+            LocalDateTime depJL_DAC_HND = date.atTime(18, 0, 0);
+            batch.add(Flight.builder()
+                    .flightNumber("JL708" + dateSuffix)
+                    .airline("Japan Airlines")
+                    .origin("DAC")
+                    .destination("HND")
+                    .departureTime(depJL_DAC_HND)
+                    .arrivalTime(depJL_DAC_HND.plusHours(6).plusMinutes(45))
+                    .economyPrice(BigDecimal.valueOf(710.00))
+                    .businessPrice(BigDecimal.valueOf(1750.00))
+                    .totalEconomySeats(200)
+                    .totalBusinessSeats(30)
+                    .availableEconomySeats(200)
+                    .availableBusinessSeats(30)
+                    .status(FlightStatus.SCHEDULED)
+                    .build());
+
+            // 3. NRT <-> DAC (Biman Bangladesh: BG361/BG360)
+            LocalDateTime depBG_NRT_DAC = date.atTime(11, 0, 0);
+            batch.add(Flight.builder()
+                    .flightNumber("BG361" + dateSuffix)
                     .airline("Biman Bangladesh Airlines")
                     .origin("NRT")
                     .destination("DAC")
-                    .departureTime(dep13)
-                    .arrivalTime(dep13.plusHours(7).plusMinutes(30))
+                    .departureTime(depBG_NRT_DAC)
+                    .arrivalTime(depBG_NRT_DAC.plusHours(7).plusMinutes(30))
                     .economyPrice(BigDecimal.valueOf(510.00))
                     .businessPrice(BigDecimal.valueOf(1280.00))
                     .totalEconomySeats(180)
@@ -761,16 +816,16 @@ public class DatabaseSeeder implements CommandLineRunner {
                     .availableEconomySeats(180)
                     .availableBusinessSeats(24)
                     .status(FlightStatus.SCHEDULED)
-                    .build();
+                    .build());
 
-            LocalDateTime dep14 = LocalDateTime.of(2026, 6, day, 20, 30, 0);
-            Flight flight14 = Flight.builder()
-                    .flightNumber("BG360" + String.format("%02d", day))
+            LocalDateTime depBG_DAC_NRT = date.atTime(20, 30, 0);
+            batch.add(Flight.builder()
+                    .flightNumber("BG360" + dateSuffix)
                     .airline("Biman Bangladesh Airlines")
                     .origin("DAC")
                     .destination("NRT")
-                    .departureTime(dep14)
-                    .arrivalTime(dep14.plusHours(7))
+                    .departureTime(depBG_DAC_NRT)
+                    .arrivalTime(depBG_DAC_NRT.plusHours(7))
                     .economyPrice(BigDecimal.valueOf(530.00))
                     .businessPrice(BigDecimal.valueOf(1320.00))
                     .totalEconomySeats(180)
@@ -778,9 +833,226 @@ public class DatabaseSeeder implements CommandLineRunner {
                     .availableEconomySeats(180)
                     .availableBusinessSeats(24)
                     .status(FlightStatus.SCHEDULED)
-                    .build();
+                    .build());
 
-            flightRepository.saveAll(Arrays.asList(flight11, flight12, flight13, flight14));
+            // 4. DXB <-> DAC (Emirates: EK582/EK583)
+            LocalDateTime depEK_DXB_DAC = date.atTime(8, 30, 0);
+            batch.add(Flight.builder()
+                    .flightNumber("EK582" + dateSuffix)
+                    .airline("Emirates")
+                    .origin("DXB")
+                    .destination("DAC")
+                    .departureTime(depEK_DXB_DAC)
+                    .arrivalTime(depEK_DXB_DAC.plusHours(4).plusMinutes(30))
+                    .economyPrice(BigDecimal.valueOf(450.00))
+                    .businessPrice(BigDecimal.valueOf(1150.00))
+                    .totalEconomySeats(250)
+                    .totalBusinessSeats(40)
+                    .availableEconomySeats(250)
+                    .availableBusinessSeats(40)
+                    .status(FlightStatus.SCHEDULED)
+                    .build());
+
+            LocalDateTime depEK_DAC_DXB = date.atTime(14, 0, 0);
+            batch.add(Flight.builder()
+                    .flightNumber("EK583" + dateSuffix)
+                    .airline("Emirates")
+                    .origin("DAC")
+                    .destination("DXB")
+                    .departureTime(depEK_DAC_DXB)
+                    .arrivalTime(depEK_DAC_DXB.plusHours(4).plusMinutes(45))
+                    .economyPrice(BigDecimal.valueOf(480.00))
+                    .businessPrice(BigDecimal.valueOf(1200.00))
+                    .totalEconomySeats(250)
+                    .totalBusinessSeats(40)
+                    .availableEconomySeats(250)
+                    .availableBusinessSeats(40)
+                    .status(FlightStatus.SCHEDULED)
+                    .build());
+
+            // 5. LHR <-> DAC (Biman Bangladesh: BG202/BG201)
+            LocalDateTime depBG_LHR_DAC = date.atTime(18, 30, 0);
+            batch.add(Flight.builder()
+                    .flightNumber("BG202" + dateSuffix)
+                    .airline("Biman Bangladesh Airlines")
+                    .origin("LHR")
+                    .destination("DAC")
+                    .departureTime(depBG_LHR_DAC)
+                    .arrivalTime(depBG_LHR_DAC.plusHours(10))
+                    .economyPrice(BigDecimal.valueOf(780.00))
+                    .businessPrice(BigDecimal.valueOf(1950.00))
+                    .totalEconomySeats(180)
+                    .totalBusinessSeats(24)
+                    .availableEconomySeats(180)
+                    .availableBusinessSeats(24)
+                    .status(FlightStatus.SCHEDULED)
+                    .build());
+
+            LocalDateTime depBG_DAC_LHR = date.atTime(10, 15, 0);
+            batch.add(Flight.builder()
+                    .flightNumber("BG201" + dateSuffix)
+                    .airline("Biman Bangladesh Airlines")
+                    .origin("DAC")
+                    .destination("LHR")
+                    .departureTime(depBG_DAC_LHR)
+                    .arrivalTime(depBG_DAC_LHR.plusHours(10).plusMinutes(30))
+                    .economyPrice(BigDecimal.valueOf(820.00))
+                    .businessPrice(BigDecimal.valueOf(2000.00))
+                    .totalEconomySeats(180)
+                    .totalBusinessSeats(24)
+                    .availableEconomySeats(180)
+                    .availableBusinessSeats(24)
+                    .status(FlightStatus.SCHEDULED)
+                    .build());
+
+            // 6. SIN <-> DAC (Singapore Airlines: SQ446/SQ447)
+            LocalDateTime depSQ_SIN_DAC = date.atTime(20, 35, 0);
+            batch.add(Flight.builder()
+                    .flightNumber("SQ446" + dateSuffix)
+                    .airline("Singapore Airlines")
+                    .origin("SIN")
+                    .destination("DAC")
+                    .departureTime(depSQ_SIN_DAC)
+                    .arrivalTime(depSQ_SIN_DAC.plusHours(4).plusMinutes(10))
+                    .economyPrice(BigDecimal.valueOf(390.00))
+                    .businessPrice(BigDecimal.valueOf(980.00))
+                    .totalEconomySeats(180)
+                    .totalBusinessSeats(24)
+                    .availableEconomySeats(180)
+                    .availableBusinessSeats(24)
+                    .status(FlightStatus.SCHEDULED)
+                    .build());
+
+            LocalDateTime depSQ_DAC_SIN = date.atTime(23, 55, 0);
+            batch.add(Flight.builder()
+                    .flightNumber("SQ447" + dateSuffix)
+                    .airline("Singapore Airlines")
+                    .origin("DAC")
+                    .destination("SIN")
+                    .departureTime(depSQ_DAC_SIN)
+                    .arrivalTime(depSQ_DAC_SIN.plusHours(4).plusMinutes(15))
+                    .economyPrice(BigDecimal.valueOf(410.00))
+                    .businessPrice(BigDecimal.valueOf(1020.00))
+                    .totalEconomySeats(180)
+                    .totalBusinessSeats(24)
+                    .availableEconomySeats(180)
+                    .availableBusinessSeats(24)
+                    .status(FlightStatus.SCHEDULED)
+                    .build());
+
+            // 7. KUL <-> DAC (Malaysia Airlines: MH196/MH197)
+            LocalDateTime depMH_KUL_DAC = date.atTime(22, 10, 0);
+            batch.add(Flight.builder()
+                    .flightNumber("MH196" + dateSuffix)
+                    .airline("Malaysia Airlines")
+                    .origin("KUL")
+                    .destination("DAC")
+                    .departureTime(depMH_KUL_DAC)
+                    .arrivalTime(depMH_KUL_DAC.plusHours(3).plusMinutes(50))
+                    .economyPrice(BigDecimal.valueOf(280.00))
+                    .businessPrice(BigDecimal.valueOf(700.00))
+                    .totalEconomySeats(160)
+                    .totalBusinessSeats(16)
+                    .availableEconomySeats(160)
+                    .availableBusinessSeats(16)
+                    .status(FlightStatus.SCHEDULED)
+                    .build());
+
+            LocalDateTime depMH_DAC_KUL = date.atTime(0, 40, 0);
+            batch.add(Flight.builder()
+                    .flightNumber("MH197" + dateSuffix)
+                    .airline("Malaysia Airlines")
+                    .origin("DAC")
+                    .destination("KUL")
+                    .departureTime(depMH_DAC_KUL)
+                    .arrivalTime(depMH_DAC_KUL.plusHours(4))
+                    .economyPrice(BigDecimal.valueOf(300.00))
+                    .businessPrice(BigDecimal.valueOf(750.00))
+                    .totalEconomySeats(160)
+                    .totalBusinessSeats(16)
+                    .availableEconomySeats(160)
+                    .availableBusinessSeats(16)
+                    .status(FlightStatus.SCHEDULED)
+                    .build());
+
+            // 8. BKK <-> DAC (Thai Airways: TG321/TG322)
+            LocalDateTime depTG_BKK_DAC = date.atTime(10, 35, 0);
+            batch.add(Flight.builder()
+                    .flightNumber("TG321" + dateSuffix)
+                    .airline("Thai Airways")
+                    .origin("BKK")
+                    .destination("DAC")
+                    .departureTime(depTG_BKK_DAC)
+                    .arrivalTime(depTG_BKK_DAC.plusHours(2).plusMinutes(30))
+                    .economyPrice(BigDecimal.valueOf(240.00))
+                    .businessPrice(BigDecimal.valueOf(600.00))
+                    .totalEconomySeats(200)
+                    .totalBusinessSeats(30)
+                    .availableEconomySeats(200)
+                    .availableBusinessSeats(30)
+                    .status(FlightStatus.SCHEDULED)
+                    .build());
+
+            LocalDateTime depTG_DAC_BKK = date.atTime(13, 30, 0);
+            batch.add(Flight.builder()
+                    .flightNumber("TG322" + dateSuffix)
+                    .airline("Thai Airways")
+                    .origin("DAC")
+                    .destination("BKK")
+                    .departureTime(depTG_DAC_BKK)
+                    .arrivalTime(depTG_DAC_BKK.plusHours(2).plusMinutes(25))
+                    .economyPrice(BigDecimal.valueOf(260.00))
+                    .businessPrice(BigDecimal.valueOf(650.00))
+                    .totalEconomySeats(200)
+                    .totalBusinessSeats(30)
+                    .availableEconomySeats(200)
+                    .availableBusinessSeats(30)
+                    .status(FlightStatus.SCHEDULED)
+                    .build());
+
+            // 9. CCU <-> DAC (IndiGo: 6E859/6E860)
+            LocalDateTime dep6E_CCU_DAC = date.atTime(7, 30, 0);
+            batch.add(Flight.builder()
+                    .flightNumber("6E859" + dateSuffix)
+                    .airline("IndiGo")
+                    .origin("CCU")
+                    .destination("DAC")
+                    .departureTime(dep6E_CCU_DAC)
+                    .arrivalTime(dep6E_CCU_DAC.plusHours(1))
+                    .economyPrice(BigDecimal.valueOf(90.00))
+                    .businessPrice(BigDecimal.valueOf(225.00))
+                    .totalEconomySeats(180)
+                    .totalBusinessSeats(0)
+                    .availableEconomySeats(180)
+                    .availableBusinessSeats(0)
+                    .status(FlightStatus.SCHEDULED)
+                    .build());
+
+            LocalDateTime dep6E_DAC_CCU = date.atTime(9, 30, 0);
+            batch.add(Flight.builder()
+                    .flightNumber("6E860" + dateSuffix)
+                    .airline("IndiGo")
+                    .origin("DAC")
+                    .destination("CCU")
+                    .departureTime(dep6E_DAC_CCU)
+                    .arrivalTime(dep6E_DAC_CCU.plusHours(1))
+                    .economyPrice(BigDecimal.valueOf(95.00))
+                    .businessPrice(BigDecimal.valueOf(235.00))
+                    .totalEconomySeats(180)
+                    .totalBusinessSeats(0)
+                    .availableEconomySeats(180)
+                    .availableBusinessSeats(0)
+                    .status(FlightStatus.SCHEDULED)
+                    .build());
+
+            if (batch.size() >= 500) {
+                flightRepository.saveAll(batch);
+                batch.clear();
+            }
+        }
+        
+        if (!batch.isEmpty()) {
+            flightRepository.saveAll(batch);
         }
         System.out.println("Seeded Dhaka flights successfully.");
     }

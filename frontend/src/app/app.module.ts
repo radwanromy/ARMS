@@ -24,6 +24,7 @@ import { AIAssistantWidgetComponent } from './components/ai-assistant-widget/ai-
 import { FlightTrackerComponent } from './components/flight-tracker/flight-tracker.component';
 import { TravelPackagesComponent } from './components/travel-packages/travel-packages.component';
 import { AdminAviationManagementComponent } from './components/admin-aviation-management/admin-aviation-management.component';
+import { CorporateInfoComponent } from './components/corporate-info/corporate-info.component';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 
 @NgModule({
@@ -47,7 +48,8 @@ import { AuthInterceptor } from './interceptors/auth.interceptor';
     AIAssistantWidgetComponent,
     FlightTrackerComponent,
     TravelPackagesComponent,
-    AdminAviationManagementComponent
+    AdminAviationManagementComponent,
+    CorporateInfoComponent
   ],
   imports: [
     BrowserModule,

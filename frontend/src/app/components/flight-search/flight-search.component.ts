@@ -186,8 +186,22 @@ import { Flight } from '../../models/flight.model';
       <!-- Results Grid -->
       <div class="results-wrapper">
         <div class="results-header" *ngIf="searched && !loading">
-          <h3>Available Flights ({{ flights.length }})</h3>
-          <p>Showing flights from {{ getFriendlyName(searchForm.value.origin) }} to {{ getFriendlyName(searchForm.value.destination) }}</p>
+          <h3 *ngIf="!isSelectingReturn">Available Flights ({{ flights.length }})</h3>
+          <h3 *ngIf="isSelectingReturn">Select Return Flight ({{ flights.length }})</h3>
+          <p *ngIf="!isSelectingReturn">Showing flights from {{ getFriendlyName(searchForm.value.origin) }} to {{ getFriendlyName(searchForm.value.destination) }}</p>
+          <p *ngIf="isSelectingReturn">Showing return flights from {{ getFriendlyName(searchForm.value.destination) }} to {{ getFriendlyName(searchForm.value.origin) }} on {{ searchForm.value.returnDate }}</p>
+        </div>
+
+        <!-- Selected Outbound Flight Banner -->
+        <div class="outbound-banner glass-panel animate-fade-in" *ngIf="isSelectingReturn && selectedOutboundFlight">
+          <div class="banner-info">
+            <span class="banner-badge">Outbound Selected</span>
+            <span class="banner-text">
+              <strong>{{ selectedOutboundFlight.airline }} {{ selectedOutboundFlight.flightNumber }}</strong>: 
+              {{ selectedOutboundFlight.origin }} &rarr; {{ selectedOutboundFlight.destination }} | {{ formatTime(selectedOutboundFlight.departureTime) }}
+            </span>
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm" (click)="resetOutboundSelection()">Change Outbound</button>
         </div>
 
         <div class="loading-state" *ngIf="loading">
@@ -240,8 +254,8 @@ import { Flight } from '../../models/flight.model';
             <div class="flight-pricing">
               <div class="price-container">
                 <span class="class-label">{{ searchForm.value.seatClass }}</span>
-                <span class="price-val">\${{ getPrice(flight) * (searchForm.value.tripType === 'ROUND_TRIP' ? 1.8 : 1) | number:'1.0-0' }}</span>
-                <span class="price-sub">{{ searchForm.value.tripType === 'ROUND_TRIP' ? 'round-trip' : 'per passenger' }}</span>
+                <span class="price-val">\${{ getPrice(flight) * (searchForm.value.tripType === 'ROUND_TRIP' && !isSelectingReturn ? 1.8 : 1) | number:'1.0-0' }}</span>
+                <span class="price-sub">{{ searchForm.value.tripType === 'ROUND_TRIP' && !isSelectingReturn ? 'est. round-trip' : 'per passenger' }}</span>
               </div>
 
               <button class="btn btn-primary select-btn" (click)="selectFlight(flight)">
@@ -821,6 +835,34 @@ import { Flight } from '../../models/flight.model';
       100% { transform: translateX(100%); }
     }
 
+    .outbound-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 24px;
+      border-radius: 12px;
+      border: 1px dashed rgba(59, 130, 246, 0.4);
+      background: rgba(59, 130, 246, 0.05);
+      margin-bottom: 24px;
+    }
+    .banner-info {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .banner-badge {
+      background: #3b82f6;
+      color: #fff;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .banner-text {
+      font-size: 0.95rem;
+    }
+
     @media (max-width: 768px) {
       .compact-header {
         flex-direction: column;
@@ -843,6 +885,10 @@ export class FlightSearchComponent implements OnInit {
   showSearchForm = true;
   minDate: string;
   carouselDates: { dateStr: string, dayName: string, dateFormatted: string, price: number, active: boolean }[] = [];
+
+  // Round Trip states
+  selectedOutboundFlight: Flight | null = null;
+  isSelectingReturn = false;
 
   // Autocomplete UI States
   originInput = '';
@@ -967,6 +1013,8 @@ export class FlightSearchComponent implements OnInit {
     if (this.searchForm.valid) {
       this.loading = true;
       this.searched = true;
+      this.selectedOutboundFlight = null;
+      this.isSelectingReturn = false;
       this.flightService.searchFlights(this.searchForm.value)
         .subscribe({
           next: (data) => {
@@ -1042,9 +1090,44 @@ export class FlightSearchComponent implements OnInit {
   }
 
   selectFlight(flight: Flight): void {
-    this.router.navigate(['/seat-selection'], {
-      state: { flight, searchCriteria: this.searchForm.value }
-    });
+    if (this.searchForm.value.tripType === 'ROUND_TRIP' && !this.isSelectingReturn) {
+      this.selectedOutboundFlight = flight;
+      this.isSelectingReturn = true;
+      this.loading = true;
+      
+      const returnCriteria = {
+        origin: this.searchForm.value.destination,
+        destination: this.searchForm.value.origin,
+        departureDate: this.searchForm.value.returnDate,
+        seatClass: this.searchForm.value.seatClass,
+        passengers: this.searchForm.value.passengers
+      };
+      
+      this.flightService.searchFlights(returnCriteria).subscribe({
+        next: (data) => {
+          this.flights = data;
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('Failed to search return flights', error);
+          this.flights = [];
+          this.loading = false;
+        }
+      });
+    } else {
+      const stateData: any = { flight, searchCriteria: this.searchForm.value };
+      if (this.searchForm.value.tripType === 'ROUND_TRIP') {
+        stateData.flight = this.selectedOutboundFlight;
+        stateData.returnFlight = flight;
+      }
+      this.router.navigate(['/seat-selection'], { state: stateData });
+    }
+  }
+
+  resetOutboundSelection(): void {
+    this.selectedOutboundFlight = null;
+    this.isSelectingReturn = false;
+    this.searchFlights();
   }
 
   // Helpers

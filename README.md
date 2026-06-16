@@ -4,6 +4,63 @@ Volant Airlines is a production-ready, full-stack airline reservation and flight
 
 ---
 
+## ✨ Key Features & Recent Upgrades
+
+Volant Airlines includes several advanced features that make it an industry-grade airline portal:
+
+### 1. 🔁 Two-Way Round-Trip Booking Flow
+- **Dual Flight Selection**: The booking page features a synchronized search layout. Selecting an outbound flight automatically saves it in the application state, presents an Outbound Flight details banner with a "Change" button, and swaps search inputs to query return flight paths dynamically on the return date.
+- **Multi-Step Seat Selection Map**: An interactive passenger seat assignment layout guides travelers sequentially. Passengers choose their seat for the outbound leg (e.g., Seat 12A), then proceed to a dedicated seat map for the return leg, with back-navigation to modify outbound selections at any time.
+- **Combined Checkout & Ticket Generation**: Computes total pricing by aggregating base fares, seat fees, taxes, and baggage allowances for both flights. The backend generates sequential reservation records, processes single-swipe sequential credit authorization, and generates concurrent download links for both outbound and return e-ticket PDFs.
+
+### 2. 🏢 Volant Corporate Portal & Support Hub
+- Located at a unified path `/info/:page`, the portal acts as a central hub for **13 distinct corporate, service, and contact sections** linked directly from the global footer:
+  - **About Volant**: *Our Company* (details on Volant's founding, mission, and leadership under CEO **A S M RADWAN** at the **Tokyo, Japan** headquarters), *News & Press* (recent company highlights, flight path openings), *Global Alliances* (partner codeshare systems), and *Careers* (job application submissions).
+  - **Services**: *Premium Business Class*, *Volant First Class* (amenities, flatbeds, private suite experiences), *In-Flight Dining* (curated chef menus), and *Cargo Services* (logistical freight).
+  - **Support & Contact**: *Customer Service* (support ticketing dashboard), *Special Assistance* (medical and disability travel planning), *Baggage Information* (rules and calculators), *Email Support* (direct category-based inquiry form), and *Call Support* (hotlines supporting interactive `tel:` click-to-dial links, with the central helpdesk at **+817092026067**).
+
+### 3. 🧮 Interactive Corporate Portal Widgets
+- **Baggage Allowance Calculator**: Located in the Baggage Information section, this utility lets users input their cabin class, bag counts, and weights to dynamically determine checked and carry-on allowances. It computes over-limit fee estimates ($75 per extra piece, $50 for overweight items up to 32kg) in real-time.
+- **In-Flight Dining Menu Viewer**: An elegant tabbed interface allowing travelers to view culinary menus by meal types (*Appetizers, Main Courses, Desserts, Wine List*). Features premium descriptions of gourmet entries (e.g., Wagyu Beef Ribeye, Match Crème Brûlée, Sake pairings).
+- **Interactive Forms**:
+  - *Customer Ticket Form*: Includes input validation, reservation reference lookup, and mock ticket creation.
+  - *Careers Application Form*: Features mock resume uploads (`A_S_M_Radwan_CV.pdf` preset) and dropdown selector for Tokyo/global crew and pilot bases.
+  - *Email Composer*: Dynamic category router (e.g., Booking Inquiry, Refund, Baggage, Corporate) with notification alerts upon submission.
+
+### 4. 🎨 Design System, Theme Configurations, and Accessibility
+- **Three Core Theme Variations**: Toggleable via the global settings panel:
+  - *Light (White) Mode*: High-contrast clean styling with soft grey borders and high-legibility charcoal text.
+  - *Mid (Steel/Blue) Mode*: Space-inspired blue and slate backgrounds with balanced grey text.
+  - *Dark Mode*: Premium deep space black backgrounds with neon emerald overlays and white text.
+- **Glassmorphism Design Tokens**: All themes share glassmorphic tokens using custom CSS properties (`--glass-bg`, `--glass-border`, `--glass-shadow`, `--text-primary`, `--input-bg`). Input forms, focus highlights, search fields, autocomplete options, and dropdown lists automatically adapt color structures to ensure AAA accessibility.
+- **Responsive Layout**: Designed using CSS Flexbox, Grid, and media queries to offer a premium UI across standard desktop screens, tablets, and mobile devices.
+
+### 5. ✈️ Live Flight Radar Tracker
+- **Leaflet Map Integration**: Integrates a theme-adapting world map layer (switching between CartoDB Voyager, Positron, and Dark Matter tile basemaps).
+- **Simulation Flight Engine**: Interpolates flight trajectories along geodesic curves, displaying telemetry (speed, heading, altitude, squawk, lat/lng coordinates) in real-time.
+- **Interactive Sidebars & Timelines**:
+  - *Left Sidebar*: Tabbed navigation showing *Most Tracked* flights (ranked by active viewer counts), *Disruptions* (delay boards for global airports), and *Bookmarks* (to save and watch target flights).
+  - *Right Sidebar*: Telemetry dashboard HUD and *Alert Signup* forms (SMS/Email alerts on delays).
+  - *Playback Controls*: A bottom toolbar containing timeline scrubbers, Play/Pause toggles, and playback speed multipliers (1x to 16x).
+  - *Weather Radar Layers*: Renders Rain Radar polygons, Cloud density patterns, Turbulence areas, and Storm alert indicators.
+  - *Radar Filters*: Dropdowns to filter traffic by aircraft type (Passenger, Cargo, Military, Private Jet, Helicopter) and airline.
+- **AI Space Radar Assistant**: Natural language console to query map entities (e.g., `"Track flight JL23"`, `"find cargo planes"`, `"airports with delays"`, `"clear filters"`). Dynamically pans and zooms the camera and applies filters based on user inputs.
+
+### 6. 📡 Real-Time APIs & Global Coverage
+- **REST Countries Integration**: Calls the REST Countries API on-demand to fetch ISO-standard flag emojis (e.g., 🇯🇵, 🇧🇩, 🇺🇸) based on flight registers.
+- **Open-Meteo Integration**: Computes real-time weather details (current temp, wind vectors, clear/rain status) using GPS coordinate fetches when querying airports on the map.
+- **OpenSky Network Integration**: Directly interfaces with OpenSky API states arrays to merge live civilian flight trajectories into the simulation map.
+- **Haversine Geodesic Scheduler**: Backed by a math-based flight generation algorithm. Generates on-demand flights for any airport pair worldwide, allowing users to search and book journeys between 6,000+ commercial airports and 240+ countries.
+
+### 7. 🤖 AI Volant Support Assistant Chatbot
+- A natural-language assistant panel embedded in the navbar.
+- Directly parses destination/origin inputs from conversational statements (e.g., *"I want to fly from Dhaka to Tokyo on 2026-06-16"*).
+- Interrogates the backend database to suggest matching flight routes, pricing, schedules, and handles seat reservations through friendly conversational prompts.
+- Displays responsive adaptive components, markdown text, and links.
+
+
+---
+
 ## 🏗️ Project Architecture & Layout
 
 The codebase is structured into two main components and a database configuration directory:

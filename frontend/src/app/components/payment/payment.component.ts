@@ -73,8 +73,12 @@ import { Booking } from '../../models/booking.model';
           
           <div class="receipt-box">
             <div class="receipt-row">
-              <span class="label">Booking Reference</span>
+              <span class="label">Outbound Booking Reference</span>
               <span class="value ref-val">{{ booking.bookingReference }}</span>
+            </div>
+            <div class="receipt-row" *ngIf="returnBooking">
+              <span class="label">Return Booking Reference</span>
+              <span class="value ref-val">{{ returnBooking.bookingReference }}</span>
             </div>
             <div class="receipt-row">
               <span class="label">Transaction ID</span>
@@ -82,7 +86,7 @@ import { Booking } from '../../models/booking.model';
             </div>
             <div class="receipt-row">
               <span class="label">Amount Paid</span>
-              <span class="value price-lbl">\${{ booking.totalPrice }}</span>
+              <span class="value price-lbl">\${{ getCombinedPrice() }}</span>
             </div>
             <div class="receipt-row">
               <span class="label">Payment Method</span>
@@ -95,7 +99,7 @@ import { Booking } from '../../models/booking.model';
           </div>
 
           <div class="modal-actions">
-            <button class="btn btn-secondary" (click)="downloadTicket()">Download Ticket</button>
+            <button class="btn btn-secondary" (click)="downloadTicket()">Download Ticket(s)</button>
             <button class="btn btn-primary" (click)="navigate('/my-bookings')">View My Bookings</button>
           </div>
         </div>
@@ -240,7 +244,7 @@ import { Booking } from '../../models/booking.model';
               </div>
 
               <button type="submit" class="btn btn-primary submit-btn">
-                Verify & Pay &middot; \${{ booking.totalPrice }}
+                Verify & Pay &middot; \${{ getCombinedPrice() }}
               </button>
             </form>
 
@@ -270,32 +274,59 @@ import { Booking } from '../../models/booking.model';
           <div class="summary-card glass-panel">
             <h3 class="side-title">Booking Details</h3>
             
-            <div class="detail-row">
-              <span class="lbl">Reference</span>
-              <span class="val">{{ booking.bookingReference }}</span>
+            <div class="flight-leg-details">
+              <span class="flight-leg-title">Outbound Voyage</span>
+              <div class="detail-row">
+                <span class="lbl">Reference</span>
+                <span class="val">{{ booking.bookingReference }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="lbl">Flight</span>
+                <span class="val">{{ booking.flight.flightNumber }} ({{ booking.flight.airline }})</span>
+              </div>
+              <div class="detail-row">
+                <span class="lbl">Route</span>
+                <span class="val">{{ booking.flight.origin }} &rarr; {{ booking.flight.destination }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="lbl">Seat</span>
+                <span class="val seat-badge">{{ booking.seatNumber }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="lbl">Seat Class</span>
+                <span class="val capitalize">{{ booking.seatClass.toLowerCase() }}</span>
+              </div>
             </div>
-            <div class="detail-row">
-              <span class="lbl">Flight</span>
-              <span class="val">{{ booking.flight.flightNumber }} ({{ booking.flight.airline }})</span>
-            </div>
-            <div class="detail-row">
-              <span class="lbl">Route</span>
-              <span class="val">{{ booking.flight.origin }} &rarr; {{ booking.flight.destination }}</span>
-            </div>
-            <div class="detail-row">
-              <span class="lbl">Seat</span>
-              <span class="val seat-badge">{{ booking.seatNumber }}</span>
-            </div>
-            <div class="detail-row">
-              <span class="lbl">Seat Class</span>
-              <span class="val capitalize">{{ booking.seatClass.toLowerCase() }}</span>
+
+            <div class="flight-leg-details mt-4" *ngIf="returnBooking">
+              <span class="flight-leg-title">Return Voyage</span>
+              <div class="detail-row">
+                <span class="lbl">Reference</span>
+                <span class="val">{{ returnBooking.bookingReference }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="lbl">Flight</span>
+                <span class="val">{{ returnBooking.flight.flightNumber }} ({{ returnBooking.flight.airline }})</span>
+              </div>
+              <div class="detail-row">
+                <span class="lbl">Route</span>
+                <span class="val">{{ returnBooking.flight.origin }} &rarr; {{ returnBooking.flight.destination }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="lbl">Seat</span>
+                <span class="val seat-badge">{{ returnBooking.seatNumber }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="lbl">Seat Class</span>
+                <span class="val capitalize">{{ returnBooking.seatClass.toLowerCase() }}</span>
+              </div>
             </div>
             
             <div class="divider"></div>
             
             <div class="detail-row total-row">
               <span class="lbl">Total Cost</span>
-              <span class="val price-val">\${{ booking.totalPrice }}</span>
+              <span class="val price-val">\${{ getCombinedPrice() }}</span>
             </div>
           </div>
         </div>
@@ -805,6 +836,20 @@ import { Booking } from '../../models/booking.model';
       height: 48px;
       border-width: 4px;
     }
+    .flight-leg-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--primary);
+      font-weight: 700;
+      margin-bottom: 8px;
+      display: block;
+    }
+    .flight-leg-details {
+      padding: 8px 0;
+      border-bottom: 1px dashed rgba(255,255,255,0.06);
+    }
+    .mt-4 { margin-top: 16px; }
   `]
 })
 export class PaymentComponent implements OnInit {
@@ -829,6 +874,12 @@ export class PaymentComponent implements OnInit {
   sentOtpCode = '';
   authError = '';
 
+  // Round Trip additions
+  returnBookingId = '';
+  returnBooking: Booking | null = null;
+  outboundTransactionId = '';
+  returnTransactionId = '';
+
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
@@ -839,8 +890,21 @@ export class PaymentComponent implements OnInit {
 
   ngOnInit(): void {
     this.bookingId = this.route.snapshot.paramMap.get('bookingId') || '';
+    
+    // Check navigation state or history for return booking reference
+    const navigation = this.router.getCurrentNavigation();
+    if (navigation?.extras.state) {
+      this.returnBookingId = navigation.extras.state['returnBookingReference'] || '';
+    } else if (history.state) {
+      this.returnBookingId = history.state['returnBookingReference'] || '';
+    }
+
     if (this.bookingId) {
       this.loadReservation();
+    }
+
+    if (this.returnBookingId) {
+      this.loadReturnReservation();
     }
 
     this.paymentForm = this.fb.group({
@@ -867,6 +931,26 @@ export class PaymentComponent implements OnInit {
           this.errorMessage = 'Failed to load booking details.';
         }
       });
+  }
+
+  loadReturnReservation(): void {
+    this.bookingService.getReservationByReference(this.returnBookingId)
+      .subscribe({
+        next: (data) => {
+          this.returnBooking = data;
+        },
+        error: (err) => {
+          console.error('Failed to load return reservation', err);
+        }
+      });
+  }
+
+  getCombinedPrice(): number {
+    let price = this.booking?.totalPrice || 0;
+    if (this.returnBooking) {
+      price += this.returnBooking.totalPrice;
+    }
+    return price;
   }
 
   setPaymentMethod(method: 'card' | 'debit' | 'applepay' | 'googlepay'): void {
@@ -944,7 +1028,6 @@ export class PaymentComponent implements OnInit {
         this.authError = 'Password is required.';
         return;
       }
-      // Simulate successful re-auth
       this.showAuthModal = false;
       this.executePayment();
     } else {
@@ -960,56 +1043,103 @@ export class PaymentComponent implements OnInit {
   executePayment(): void {
     this.processing = true;
 
-    const requestPayload = {
+    const methodLabel = this.paymentMethod === 'applepay' ? 'Apple Pay' : 
+                        this.paymentMethod === 'googlepay' ? 'Google Pay' : 
+                        this.paymentMethod === 'debit' ? 'Debit Card' : 'Credit Card';
+
+    const outboundPayload = {
       bookingReference: this.booking.bookingReference,
       amount: this.booking.totalPrice,
-      paymentMethod: this.paymentMethod === 'applepay' ? 'Apple Pay' : 
-                     this.paymentMethod === 'googlepay' ? 'Google Pay' : 
-                     this.paymentMethod === 'debit' ? 'Debit Card' : 'Credit Card',
+      paymentMethod: methodLabel,
       cardNumber: this.paymentForm.value.cardNumber || '4111222233334444',
       cvv: this.paymentForm.value.cvv || '123',
       expiryDate: this.paymentForm.value.expiryDate || '12/28'
     };
 
     setTimeout(() => {
-      this.paymentService.processPayment(requestPayload)
+      this.paymentService.processPayment(outboundPayload)
         .subscribe({
           next: (res) => {
-            this.processing = false;
+            this.outboundTransactionId = res.transactionId;
             this.transactionId = res.transactionId;
+
             if (res.status === 'COMPLETED') {
-              this.paymentStatus = 'success';
+              if (this.returnBooking) {
+                const returnPayload = {
+                  bookingReference: this.returnBooking.bookingReference,
+                  amount: this.returnBooking.totalPrice,
+                  paymentMethod: methodLabel,
+                  cardNumber: outboundPayload.cardNumber,
+                  cvv: outboundPayload.cvv,
+                  expiryDate: outboundPayload.expiryDate
+                };
+
+                this.paymentService.processPayment(returnPayload).subscribe({
+                  next: (retRes) => {
+                    this.processing = false;
+                    this.returnTransactionId = retRes.transactionId;
+                    if (retRes.status === 'COMPLETED') {
+                      this.paymentStatus = 'success';
+                    } else {
+                      this.paymentStatus = 'failed';
+                      this.errorMessage = 'Return flight card authorization failed. Please try again.';
+                    }
+                  },
+                  error: (err) => {
+                    console.error('Return payment failed', err);
+                    this.processing = false;
+                    this.paymentStatus = 'failed';
+                    this.errorMessage = 'Failed to charge return flight booking.';
+                  }
+                });
+              } else {
+                this.processing = false;
+                this.paymentStatus = 'success';
+              }
             } else {
+              this.processing = false;
               this.paymentStatus = 'failed';
               this.errorMessage = 'Card authorization failed. Please try again.';
             }
           },
           error: (err) => {
-            console.error('Payment failed', err);
+            console.error('Outbound payment failed', err);
             this.processing = false;
             this.paymentStatus = 'failed';
-            this.errorMessage = err.error?.message || 'Payment server failed to authorize transaction.';
+            this.errorMessage = err.error?.message || 'Payment server failed to authorize outbound transaction.';
           }
         });
     }, 2000);
   }
 
   downloadTicket(): void {
-    this.bookingService.generateTicket(this.booking, this.paymentForm.value.cardNumber || '••••••••••••4111', this.transactionId)
+    this.bookingService.generateTicket(this.booking, this.paymentForm.value.cardNumber || '••••••••••••4111', this.outboundTransactionId || this.transactionId)
       .subscribe(blob => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `e-ticket-${this.booking.bookingReference}.html`;
+        a.download = `e-ticket-outbound-${this.booking.bookingReference}.html`;
         a.click();
       });
+
+    if (this.returnBooking) {
+      setTimeout(() => {
+        this.bookingService.generateTicket(this.returnBooking!, this.paymentForm.value.cardNumber || '••••••••••••4111', this.returnTransactionId || this.transactionId)
+          .subscribe(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `e-ticket-return-${this.returnBooking!.bookingReference}.html`;
+            a.click();
+          });
+      }, 500);
+    }
   }
 
   navigate(path: string): void {
     this.router.navigate([path]);
   }
 
-  // Formatting Helpers
   formatCardNumber(numStr: string): string {
     if (!numStr) return '';
     const matches = numStr.match(/.{1,4}/g);

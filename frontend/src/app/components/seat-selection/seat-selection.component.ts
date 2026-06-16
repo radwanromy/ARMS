@@ -6,11 +6,25 @@ import { Flight, Seat } from '../../models/flight.model';
   selector: 'app-seat-selection',
   template: `
     <div class="container">
+      <!-- Step Indicator for Round Trip -->
+      <div class="steps-indicator mb-4 animate-fade-in" *ngIf="returnFlight">
+        <div class="step" [class.active]="!isSelectingReturnSeat" [class.completed]="isSelectingReturnSeat">
+          <span class="step-num">1</span>
+          <span class="step-lbl">Outbound Seat Selection</span>
+        </div>
+        <div class="step-line" [class.completed]="isSelectingReturnSeat"></div>
+        <div class="step" [class.active]="isSelectingReturnSeat">
+          <span class="step-num">2</span>
+          <span class="step-lbl">Return Seat Selection</span>
+        </div>
+      </div>
+
       <div class="seat-layout-grid" *ngIf="flight; else noFlightTpl">
         <!-- Main Map Panel -->
         <div class="map-card glass-panel">
           <h2 class="title gradient-text">Select Your Seat</h2>
-          <p class="subtitle">Flight: {{ flight.flightNumber }} | {{ flight.origin }} &rarr; {{ flight.destination }}</p>
+          <p class="subtitle" *ngIf="!isSelectingReturnSeat">Flight: {{ flight.flightNumber }} | {{ flight.origin }} &rarr; {{ flight.destination }}</p>
+          <p class="subtitle" *ngIf="isSelectingReturnSeat && returnFlight">Flight: {{ returnFlight.flightNumber }} | {{ returnFlight.origin }} &rarr; {{ returnFlight.destination }}</p>
 
           <!-- Legend -->
           <div class="legend">
@@ -34,6 +48,7 @@ import { Flight, Seat } from '../../models/flight.model';
                     <span class="aisle" *ngIf="colIdx === 3 || colIdx === 7"></span>
                     
                     <button 
+                       type="button"
                       class="seat-btn"
                       [class.business]="seat.class === 'BUSINESS' && seat.isAvailable"
                       [class.occupied]="!seat.isAvailable"
@@ -59,13 +74,44 @@ import { Flight, Seat } from '../../models/flight.model';
           <h3 class="summary-title">Reservation Summary</h3>
           <div class="summary-details">
             <div class="summary-item">
-              <span class="label">Flight</span>
-              <span class="value">{{ flight.flightNumber }}</span>
+              <span class="label">Trip Type</span>
+              <span class="value">{{ returnFlight ? 'Round-Trip' : 'One-Way' }}</span>
             </div>
-            <div class="summary-item">
-              <span class="label">Route</span>
-              <span class="value">{{ flight.origin }} &rarr; {{ flight.destination }}</span>
+
+            <div class="summary-flight-section">
+              <span class="flight-sec-title">Outbound Voyage</span>
+              <div class="summary-item">
+                <span class="label">Flight</span>
+                <span class="value">{{ flight.flightNumber }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="label">Route</span>
+                <span class="value">{{ flight.origin }} &rarr; {{ flight.destination }}</span>
+              </div>
+              <div class="summary-item" *ngIf="isSelectingReturnSeat ? selectedOutboundSeat : selectedSeat">
+                <span class="label">Seat</span>
+                <span class="value seat-badge">{{ (isSelectingReturnSeat ? selectedOutboundSeat : selectedSeat)?.column }}{{ (isSelectingReturnSeat ? selectedOutboundSeat : selectedSeat)?.row }}</span>
+              </div>
             </div>
+
+            <div class="summary-flight-section mt-4" *ngIf="returnFlight">
+              <span class="flight-sec-title">Return Voyage</span>
+              <div class="summary-item">
+                <span class="label">Flight</span>
+                <span class="value">{{ returnFlight.flightNumber }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="label">Route</span>
+                <span class="value">{{ returnFlight.origin }} &rarr; {{ returnFlight.destination }}</span>
+              </div>
+              <div class="summary-item" *ngIf="isSelectingReturnSeat ? selectedSeat : selectedReturnSeat">
+                <span class="label">Seat</span>
+                <span class="value seat-badge">{{ (isSelectingReturnSeat ? selectedSeat : selectedReturnSeat)?.column }}{{ (isSelectingReturnSeat ? selectedSeat : selectedReturnSeat)?.row }}</span>
+              </div>
+            </div>
+            
+            <div class="divider"></div>
+            
             <div class="summary-item">
               <span class="label">Class Selected</span>
               <span class="value capitalize">{{ searchCriteria?.seatClass || 'ECONOMY' }}</span>
@@ -74,31 +120,38 @@ import { Flight, Seat } from '../../models/flight.model';
               <span class="label">Passengers Count</span>
               <span class="value">{{ searchCriteria?.passengers || 1 }} traveler(s)</span>
             </div>
-            
-            <div class="divider"></div>
-            
-            <div class="summary-item" *ngIf="selectedSeat">
-              <span class="label">Seat Number</span>
-              <span class="value seat-badge">{{ selectedSeat.column }}{{ selectedSeat.row }}</span>
-            </div>
-            <div class="summary-item" *ngIf="selectedSeat">
-              <span class="label">Seat Class</span>
-              <span class="value">{{ selectedSeat.class }}</span>
-            </div>
-            <div class="summary-item" *ngIf="selectedSeat">
-              <span class="label">Seat Price</span>
-              <span class="value">\${{ selectedSeat.price }}</span>
-            </div>
 
-            <div class="total-price-row" *ngIf="selectedSeat">
+            <div class="total-price-row" *ngIf="selectedSeat || selectedOutboundSeat">
               <span class="label">Estimated Total</span>
               <span class="value price-tag">\${{ calculateTotal() }}</span>
             </div>
           </div>
 
-          <button class="btn btn-primary proceed-btn" [disabled]="!selectedSeat" (click)="proceedToBooking()">
-            Proceed to Booking
-          </button>
+          <div class="actions-wrapper">
+            <button 
+              type="button"
+              class="btn btn-secondary w-full mb-2" 
+              *ngIf="isSelectingReturnSeat" 
+              (click)="backToOutbound()">
+              &larr; Outbound Seat Selection
+            </button>
+            <button 
+              type="button"
+              class="btn btn-primary proceed-btn w-full" 
+              *ngIf="returnFlight && !isSelectingReturnSeat" 
+              [disabled]="!selectedSeat" 
+              (click)="confirmOutboundSeat()">
+              Confirm & Select Return Seat
+            </button>
+            <button 
+              type="button"
+              class="btn btn-primary proceed-btn w-full" 
+              *ngIf="!returnFlight || isSelectingReturnSeat" 
+              [disabled]="!selectedSeat" 
+              (click)="proceedToBooking()">
+              Proceed to Booking
+            </button>
+          </div>
         </div>
       </div>
 
@@ -106,7 +159,7 @@ import { Flight, Seat } from '../../models/flight.model';
         <div class="glass-panel error-card">
           <h4>No flight state found</h4>
           <p>Please return to the search screen to select a flight path.</p>
-          <button class="btn btn-primary" routerLink="/search">Return to Search</button>
+          <button type="button" class="btn btn-primary" routerLink="/search">Return to Search</button>
         </div>
       </ng-template>
     </div>
@@ -341,29 +394,113 @@ import { Flight, Seat } from '../../models/flight.model';
     .capitalize {
       text-transform: capitalize;
     }
+
+    .steps-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      padding: 16px 24px;
+      border-radius: 12px;
+      max-width: 800px;
+      margin: 0 auto 32px auto;
+    }
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      opacity: 0.5;
+      transition: all 0.3s;
+    }
+    .step.active {
+      opacity: 1;
+      font-weight: 700;
+    }
+    .step.completed {
+      opacity: 0.8;
+      color: var(--success);
+    }
+    .step-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--bg-secondary);
+      border: 2px solid var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+    }
+    .step.active .step-num {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+      box-shadow: 0 0 10px var(--primary-glow);
+    }
+    .step.completed .step-num {
+      background: var(--success);
+      border-color: var(--success);
+      color: #fff;
+    }
+    .step-line {
+      flex-grow: 1;
+      height: 2px;
+      background: var(--glass-border);
+      margin: 0 20px;
+      max-width: 150px;
+    }
+    .step-line.completed {
+      background: var(--success);
+    }
+    .step-lbl {
+      font-size: 0.9rem;
+    }
+    .flight-sec-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--primary);
+      font-weight: 700;
+      margin-bottom: 8px;
+      display: block;
+    }
+    .summary-flight-section {
+      padding: 8px 0;
+      border-bottom: 1px dashed rgba(255,255,255,0.06);
+    }
+    .mb-2 { margin-bottom: 8px; }
   `]
 })
 export class SeatSelectionComponent implements OnInit {
   flight!: Flight;
+  returnFlight: Flight | null = null;
   searchCriteria: any;
   seatMap: Seat[][] = [];
   selectedSeat: Seat | null = null;
+
+  // Round Trip selections
+  selectedOutboundSeat: Seat | null = null;
+  selectedReturnSeat: Seat | null = null;
+  isSelectingReturnSeat = false;
 
   constructor(private router: Router) {
     const navigation = this.router.getCurrentNavigation();
     if (navigation?.extras.state) {
       this.flight = navigation.extras.state['flight'];
+      this.returnFlight = navigation.extras.state['returnFlight'];
       this.searchCriteria = navigation.extras.state['searchCriteria'];
     }
   }
 
   ngOnInit(): void {
     if (this.flight) {
-      this.generateSeatMap();
+      this.generateSeatMap(this.flight);
     }
   }
 
-  generateSeatMap(): void {
+  generateSeatMap(targetFlight: Flight): void {
+    this.seatMap = [];
     const rows = 30;
     const columns = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K'];
 
@@ -376,7 +513,7 @@ export class SeatSelectionComponent implements OnInit {
           column: col,
           class: isBusiness ? 'BUSINESS' : 'ECONOMY',
           isAvailable: this.isSeatAvailable(i, col),
-          price: isBusiness ? this.flight.businessPrice : this.flight.economyPrice
+          price: isBusiness ? targetFlight.businessPrice : targetFlight.economyPrice
         });
       });
       this.seatMap.push(row);
@@ -384,8 +521,6 @@ export class SeatSelectionComponent implements OnInit {
   }
 
   isSeatAvailable(row: number, col: string): boolean {
-    // Deterministically mock some taken seats
-    // Rows 10, 15, 22 are mostly occupied; even hashes are occupied
     const seatHash = (row * 3) + col.charCodeAt(0);
     return seatHash % 5 !== 0 && seatHash % 7 !== 0;
   }
@@ -397,20 +532,66 @@ export class SeatSelectionComponent implements OnInit {
   }
 
   calculateTotal(): number {
-    if (!this.selectedSeat) return 0;
     const travelers = this.searchCriteria?.passengers || 1;
-    return this.selectedSeat.price * travelers;
+    let total = 0;
+    
+    if (this.selectedOutboundSeat) {
+      total += this.selectedOutboundSeat.price;
+    } else if (!this.isSelectingReturnSeat && this.selectedSeat) {
+      total += this.selectedSeat.price;
+    }
+    
+    if (this.isSelectingReturnSeat && this.selectedSeat) {
+      total += this.selectedSeat.price;
+    } else if (this.selectedReturnSeat) {
+      total += this.selectedReturnSeat.price;
+    }
+
+    return total * travelers;
+  }
+
+  confirmOutboundSeat(): void {
+    if (this.selectedSeat && this.returnFlight) {
+      this.selectedOutboundSeat = this.selectedSeat;
+      this.selectedSeat = this.selectedReturnSeat; // restore previous return selection if any
+      this.isSelectingReturnSeat = true;
+      this.generateSeatMap(this.returnFlight);
+    }
+  }
+
+  backToOutbound(): void {
+    if (this.returnFlight) {
+      this.selectedReturnSeat = this.selectedSeat;
+      this.selectedSeat = this.selectedOutboundSeat;
+      this.isSelectingReturnSeat = false;
+      this.generateSeatMap(this.flight);
+    }
   }
 
   proceedToBooking(): void {
-    if (this.selectedSeat) {
-      this.router.navigate(['/booking'], {
-        state: {
-          flight: this.flight,
-          selectedSeat: this.selectedSeat,
-          searchCriteria: this.searchCriteria
-        }
-      });
+    if (this.returnFlight) {
+      const returnSeat = this.selectedSeat;
+      if (this.selectedOutboundSeat && returnSeat) {
+        this.router.navigate(['/booking'], {
+          state: {
+            flight: this.flight,
+            selectedSeat: this.selectedOutboundSeat,
+            returnFlight: this.returnFlight,
+            selectedReturnSeat: returnSeat,
+            searchCriteria: this.searchCriteria
+          }
+        });
+      }
+    } else {
+      if (this.selectedSeat) {
+        this.router.navigate(['/booking'], {
+          state: {
+            flight: this.flight,
+            selectedSeat: this.selectedSeat,
+            searchCriteria: this.searchCriteria
+          }
+        });
+      }
     }
   }
 }

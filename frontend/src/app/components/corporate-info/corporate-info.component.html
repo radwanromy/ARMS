@@ -1,0 +1,763 @@
+<div class="info-hub-container">
+  <!-- Left Sticky Navigation Sidebar -->
+  <aside class="sidebar-nav glass-panel">
+    <div class="sidebar-header">
+      <app-logo [size]="55" variant="navbar"></app-logo>
+      <span class="sidebar-brand-title">Volant Hub</span>
+    </div>
+    
+    <div class="sidebar-sections">
+      <div class="sidebar-group" *ngFor="let group of categories">
+        <h4 class="group-title">{{ group.title }}</h4>
+        <ul class="group-list">
+          <li *ngFor="let item of group.items" class="group-item">
+            <button 
+              type="button" 
+              class="nav-tab-btn" 
+              [class.active]="currentPage === item.id"
+              (click)="selectPage(item.id)"
+            >
+              {{ item.label }}
+              <span class="active-indicator" *ngIf="currentPage === item.id"></span>
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Right Dynamic Content Area -->
+  <main class="content-viewport glass-panel" [ngSwitch]="currentPage">
+    
+    <!-- 1. OUR COMPANY -->
+    <section *ngSwitchCase="'our-company'" class="info-section fade-in">
+      <div class="section-hero" style="background-image: linear-gradient(135deg, rgba(30, 20, 50, 0.8), rgba(10, 10, 20, 0.95)), url('assets/tokyo-bg.jpg');">
+        <span class="hero-subtitle">GLOBAL HEADQUARTERS</span>
+        <h1 class="hero-title">Our Company</h1>
+        <p class="hero-desc">Connecting Tokyo with the rest of the world through luxury, speed, and premium hospitality.</p>
+      </div>
+
+      <div class="section-body">
+        <div class="grid-layout cols-2 mb-6">
+          <div class="card glass-card content-card">
+            <h3>Corporate Identity</h3>
+            <p>Volant Airlines is a world-class premium carrier headquartered in <strong>{{ hqLocation }}</strong>. Established with the vision of offering unparalleled comfort, modern scheduling algorithms, and cutting-edge passenger radar systems, Volant has grown into a leading global symbol of premium aviation.</p>
+            <p>Under the visionary leadership of our CEO, we maintain an uncompromising focus on safety, technical elegance, and warm hospitality, blending Japanese precision with international style standards.</p>
+          </div>
+          
+          <div class="card glass-card ceo-profile-card">
+            <div class="ceo-avatar">
+              <span class="ceo-initials">AR</span>
+            </div>
+            <div class="ceo-details">
+              <h4>Message from the CEO</h4>
+              <span class="ceo-title">A S M RADWAN</span>
+              <p class="ceo-quote">"At Volant, we do not just fly you to destinations; we curate memorable journeys. Our global flight tracker database and dynamic route generation are built to empower passengers with seamless travel control."</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="stats-grid mb-6">
+          <div class="stat-card glass-card">
+            <span class="stat-number">142</span>
+            <span class="stat-label">Active Modern Fleet</span>
+          </div>
+          <div class="stat-card glass-card">
+            <span class="stat-number">6,000+</span>
+            <span class="stat-label">Daily Flight Paths</span>
+          </div>
+          <div class="stat-card glass-card">
+            <span class="stat-number">18,400</span>
+            <span class="stat-label">Aviation Specialists</span>
+          </div>
+          <div class="stat-card glass-card">
+            <span class="stat-number">4.9 / 5</span>
+            <span class="stat-label">Customer Satisfaction</span>
+          </div>
+        </div>
+
+        <div class="timeline-wrapper">
+          <h3 class="mb-4">Operational Milestones</h3>
+          <div class="timeline-container">
+            <div class="timeline-item">
+              <span class="tl-date">2020</span>
+              <div class="tl-content">
+                <h5>Inception in Tokyo</h5>
+                <p>Volant Airlines was launched at Haneda Airport with 5 wide-body aircraft servicing regional premium routes.</p>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <span class="tl-date">2023</span>
+              <div class="tl-content">
+                <h5>Global Fleet Expansion</h5>
+                <p>Introduced Airbus A350-1000 suites and launched the dynamic flight search engine supporting global IATA routes.</p>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <span class="tl-date">2026</span>
+              <div class="tl-content">
+                <h5>Next-Gen Radar Integration</h5>
+                <p>Launched the Live Radar Simulator and expanded operations to establish Hazrat Shahjalal International Airport (Dhaka) as a key Asian gateway.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. NEWS & PRESS -->
+    <section *ngSwitchCase="'news-press'" class="info-section fade-in">
+      <div class="section-hero">
+        <span class="hero-subtitle">PRESS ROOM</span>
+        <h1 class="hero-title">News & Press</h1>
+        <p class="hero-desc">The latest announcements, media updates, and corporate reports from Volant Airlines.</p>
+      </div>
+
+      <div class="section-body">
+        <div class="news-list">
+          <article class="news-item card glass-card">
+            <div class="news-meta">
+              <span class="news-tag press-release">Press Release</span>
+              <span class="news-date">June 16, 2026</span>
+            </div>
+            <h3>Volant Airlines Seeding 1,000+ Direct Flights for Dhaka-Tokyo Routes</h3>
+            <p>Under the directive of CEO A S M RADWAN, Volant has officially upgraded its flight scheduling core to establish over 3,000 seasonal round-trip flights between Tokyo (Haneda and Narita) and Dhaka (Hazrat Shahjalal) to support high summer travel demand.</p>
+            <a href="javascript:void(0)" class="read-more-btn">Read Full Article &rarr;</a>
+          </article>
+
+          <article class="news-item card glass-card">
+            <div class="news-meta">
+              <span class="news-tag sustainability">Sustainability</span>
+              <span class="news-date">May 28, 2026</span>
+            </div>
+            <h3>Volant Commits to 15% Sustainable Aviation Fuel (SAF) Usage at Haneda by 2028</h3>
+            <p>Volant Airlines announced an agreement with Japanese fuel providers to supply eco-friendly Sustainable Aviation Fuel at Tokyo Haneda (HND), accelerating our commitment to zero-carbon flight operations by 2050.</p>
+            <a href="javascript:void(0)" class="read-more-btn">Read Full Article &rarr;</a>
+          </article>
+
+          <article class="news-item card glass-card">
+            <div class="news-meta">
+              <span class="news-tag milestone">Fleet Update</span>
+              <span class="news-date">April 12, 2026</span>
+            </div>
+            <h3>Welcoming the Tenth Boeing 787-9 Dreamliner to the Volant Fleet</h3>
+            <p>Volant's latest Dreamliner arrived at Narita Airport yesterday, featuring our signature First Class suites and low-emissions engine technology, scheduled for direct long-haul routes starting next month.</p>
+            <a href="javascript:void(0)" class="read-more-btn">Read Full Article &rarr;</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. GLOBAL ALLIANCES -->
+    <section *ngSwitchCase="'global-alliances'" class="info-section fade-in">
+      <div class="section-hero">
+        <span class="hero-subtitle">WORLDWIDE CONNECTIVITY</span>
+        <h1 class="hero-title">Global Alliances</h1>
+        <p class="hero-desc">Reaching across borders with our codeshare partners, airline alliances, and global baggage transfer networks.</p>
+      </div>
+
+      <div class="section-body">
+        <div class="card glass-card mb-6">
+          <h3>Volant SkyAlliance Membership</h3>
+          <p>Volant Airlines is a member of the prestigious <strong>SkyAlliance</strong> network, offering our passengers reciprocal frequent flyer mileage accrual, priority boarding, baggage handling, and seamless connections to over 1,200 destinations across 190 countries.</p>
+        </div>
+
+        <div class="grid-layout cols-3 gap-4 mb-6">
+          <div class="alliance-partner card glass-card text-center">
+            <div class="partner-logo">JAL</div>
+            <h5>Japan Airlines</h5>
+            <p>Core Codeshare Partner for Asia-Pacific & Domestic Networks</p>
+          </div>
+          <div class="alliance-partner card glass-card text-center">
+            <div class="partner-logo">BA</div>
+            <h5>British Airways</h5>
+            <p>Codeshare alliance for UK and trans-Atlantic routing</p>
+          </div>
+          <div class="alliance-partner card glass-card text-center">
+            <div class="partner-logo">EK</div>
+            <h5>Emirates</h5>
+            <p>Strategic interline partner for Middle-East & Africa routes</p>
+          </div>
+        </div>
+
+        <div class="card glass-card">
+          <h3>Lounge Reciprocity Program</h3>
+          <p>Passengers holding Volant First Class or Business tickets, as well as Volant Elite Status members, have access to over 600 VIP lounges globally. This includes the luxurious Volant Sakura Lounge in Tokyo Haneda, Heathrow Lounge in London, and the executive lounge in Hazrat Shahjalal International, Dhaka.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. CAREERS AT VOLANT -->
+    <section *ngSwitchCase="'careers'" class="info-section fade-in">
+      <div class="section-hero">
+        <span class="hero-subtitle">JOIN THE FLEET</span>
+        <h1 class="hero-title">Careers at Volant</h1>
+        <p class="hero-desc">Explore professional opportunities in aviation, flight operations, and engineering at our Tokyo hub.</p>
+      </div>
+
+      <div class="section-body">
+        <div class="grid-layout cols-2 gap-6">
+          <div class="careers-info">
+            <h3>Why Work at Volant?</h3>
+            <p>We pride ourselves on offering a dynamic, inclusive, and rewarding workspace. Our crew members undergo world-class training in Tokyo, enjoying competitive compensation, flight privileges for family members, and structured career growth paths.</p>
+            
+            <h4 class="mt-4 mb-3">Open Positions</h4>
+            <div class="job-list">
+              <div class="job-item card glass-card">
+                <h5>First Officer - Boeing 787 Fleet</h5>
+                <span class="job-loc">Tokyo Haneda HQ | Full-time</span>
+              </div>
+              <div class="job-item card glass-card">
+                <h5>Cabin Crew - International Services</h5>
+                <span class="job-loc">Tokyo Base / Dhaka Hub | Full-time</span>
+              </div>
+              <div class="job-item card glass-card">
+                <h5>Flight Operations Coordinator</h5>
+                <span class="job-loc">Tokyo Narita | Full-time</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="career-apply-panel card glass-card">
+            <h3>Apply for a Position</h3>
+            <p class="sub-text">Submit your profile to our talent acquisition team.</p>
+
+            <form (ngSubmit)="submitCareerForm()" *ngIf="!careerSubmitted" class="application-form">
+              <div class="form-group">
+                <label for="pos">Target Position</label>
+                <select id="pos" name="position" [(ngModel)]="careerForm.position" class="form-input">
+                  <option value="Cabin Crew - Tokyo Base">Cabin Crew - Tokyo Base</option>
+                  <option value="First Officer - Boeing 787">First Officer - Boeing 787</option>
+                  <option value="Flight Operations Coordinator">Flight Operations Coordinator</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="cname">Full Name</label>
+                <input type="text" id="cname" name="name" [(ngModel)]="careerForm.name" class="form-input" placeholder="e.g. Jane Doe" required>
+              </div>
+
+              <div class="form-group">
+                <label for="cemail">Email Address</label>
+                <input type="email" id="cemail" name="email" [(ngModel)]="careerForm.email" class="form-input" placeholder="e.g. jane&#64;domain.com" required>
+              </div>
+
+              <div class="form-group">
+                <label for="cexp">Experience Level</label>
+                <select id="cexp" name="experience" [(ngModel)]="careerForm.experience" class="form-input">
+                  <option value="Entry Level">Entry Level</option>
+                  <option value="0-2 Years">0-2 Years</option>
+                  <option value="3-5 Years">3-5 Years</option>
+                  <option value="5+ Years">5+ Years</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Resume / CV</label>
+                <div class="mock-file-upload">
+                  <span>📂 {{ careerForm.resumeName }}</span>
+                  <button type="button" class="btn btn-outline btn-sm">Change File</button>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary w-full mt-4">Submit Application</button>
+            </form>
+
+            <div class="success-alert" *ngIf="careerSubmitted">
+              <span class="alert-icon">✓</span>
+              <h4>Application Received!</h4>
+              <p>Thank you for applying to Volant Airlines. Our Tokyo Recruitment Team will review your profile and reach out within 7-10 business days.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. PREMIUM BUSINESS CLASS -->
+    <section *ngSwitchCase="'premium-business'" class="info-section fade-in">
+      <div class="section-hero">
+        <span class="hero-subtitle">VOLANT SUITE EXPERIENCE</span>
+        <h1 class="hero-title">Premium Business Class</h1>
+        <p class="hero-desc">Redefining executive air travel with fully lie-flat double suites, direct aisle access, and culinary mastery.</p>
+      </div>
+
+      <div class="section-body">
+        <div class="grid-layout cols-2 gap-6 mb-6">
+          <div class="card glass-card">
+            <h3>Your Private Sanctuary</h3>
+            <p>Our Airbus A350 and Boeing 787 Business cabins feature private sliding doors, allowing you to transform your suite into a fully enclosed personal sanctuary. Enjoy our ergonomically designed seats that recline into a 2-meter fully flat bed at the press of a button.</p>
+            <p>Each suite offers generous storage compartments, international power sockets, noise-canceling headphones, and a 21-inch ultra-high-definition entertainment screen loaded with local and international channels.</p>
+          </div>
+          <div class="card glass-card luxury-card">
+            <h3>Luxury Amenity Partnerships</h3>
+            <p>Pamper yourself during the flight with our bespoke amenity kit created in collaboration with the Italian luxury brand <strong>Bvlgari</strong>. Each kit contains premium skin hydration items, lip balms, dental hygiene supplies, a luxurious eye mask, and earplugs to ensure a peaceful rest.</p>
+          </div>
+        </div>
+
+        <div class="feature-bullets card glass-card">
+          <h3>Exclusive Privileges</h3>
+          <div class="privilege-grid">
+            <div class="privilege-item">
+              <span class="p-icon">👜</span>
+              <div>
+                <h5>Enhanced Baggage Allowance</h5>
+                <p>Checked bags: 2 bags up to 32kg each. Carry-on allowance: 2 bags up to 15kg total.</p>
+              </div>
+            </div>
+            <div class="privilege-item">
+              <span class="p-icon">🛎️</span>
+              <div>
+                <h5>Priority Terminal Services</h5>
+                <p>Bypass the queues with dedicated business check-in desks, fast-track security clearance, and priority baggage tags.</p>
+              </div>
+            </div>
+            <div class="privilege-item">
+              <span class="p-icon">🥂</span>
+              <div>
+                <h5>Sakura Lounge Entry</h5>
+                <p>Relax before takeoff with complimentary hot buffets, showers, massage chairs, and high-speed Wi-Fi in our private lounges.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. VOLANT FIRST CLASS -->
+    <section *ngSwitchCase="'first-class'" class="info-section fade-in">
+      <div class="section-hero">
+        <span class="hero-subtitle">THE APEX OF LUXURY</span>
+        <h1 class="hero-title">Volant First Class</h1>
+        <p class="hero-desc">Unrivaled luxury, signature private suites, individual wardrobes, and bespoke personal chauffeur airport services.</p>
+      </div>
+
+      <div class="section-body">
+        <div class="grid-layout cols-2 gap-6 mb-6">
+          <div class="card glass-card">
+            <h3>Bespoke Private Suites</h3>
+            <p>Volant First Class features an ultra-exclusive cabin configuration (1-2-1 layout with only 8 suites in the aircraft). Each suite is a private apartment featuring high walnut-finish walls, a personal wardrobe, a dedicated minibar, and a plush leather seat designed in collaboration with Poltrona Frau.</p>
+            <p>At bedtime, our cabin crew transforms your suite into a luxury bedroom, laying down a memory foam mattress, silk duvet sheets, and double-stuffed duck down pillows.</p>
+          </div>
+          <div class="card glass-card caviar-card">
+            <h3>Signature Caviar & Dining</h3>
+            <p>First Class guests enjoy a bespoke on-demand dining service. Indulge in our signature caviar service served with mother-of-pearl spoons, accompanied by vintage Dom Pérignon champagne, premium kobe beef, or seasonal sushi sets curated by Michelin-starred masters.</p>
+          </div>
+        </div>
+
+        <div class="card glass-card">
+          <h3>First Class Ground Privileges</h3>
+          <p>Your premium experience begins before you even reach the terminal. First Class ticket holders enjoy private airport transfers in a Mercedes-Benz S-Class (available in Tokyo, London, and Dubai). At the airport, a dedicated Volant Porter escorts you through a private security suite directly to the Volant Imperial Lounge.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. IN-FLIGHT DINING -->
+    <section *ngSwitchCase="'dining'" class="info-section fade-in">
+      <div class="section-hero">
+        <span class="hero-subtitle">CULINARY EXCELLENCE IN THE CLOUDS</span>
+        <h1 class="hero-title">In-Flight Dining</h1>
+        <p class="hero-desc">Enjoy menus crafted by master chefs, celebrating seasonal local ingredients paired with award-winning wines.</p>
+      </div>
+
+      <div class="section-body">
+        <div class="dining-tabs card glass-card mb-6">
+          <div class="tabs-header">
+            <button type="button" class="tab-btn" [class.active]="diningMealType === 'appetizers'" (click)="diningMealType = 'appetizers'">Appetizers</button>
+            <button type="button" class="tab-btn" [class.active]="diningMealType === 'mains'" (click)="diningMealType = 'mains'">Main Courses</button>
+            <button type="button" class="tab-btn" [class.active]="diningMealType === 'desserts'" (click)="diningMealType = 'desserts'">Desserts</button>
+            <button type="button" class="tab-btn" [class.active]="diningMealType === 'wines'" (click)="diningMealType = 'wines'">Wines & Cellar</button>
+          </div>
+
+          <div class="tab-content" [ngSwitch]="diningMealType">
+            <div *ngSwitchCase="'appetizers'">
+              <h4>Seasonal Starters</h4>
+              <ul class="menu-list">
+                <li>
+                  <div class="menu-item-title">Traditional Japanese Zensai Plate</div>
+                  <p>Marinated sea bass, grilled octopus with soy glaze, and sweet egg rolled sushi.</p>
+                </li>
+                <li>
+                  <div class="menu-item-title">Seared Foie Gras with Fig Chutney</div>
+                  <p>Pan-seared foie gras served on brioche toast with balsamic fig reduction.</p>
+                </li>
+                <li>
+                  <div class="menu-item-title">Heirloom Tomato & Burrata Salad</div>
+                  <p>Ripe heirloom tomatoes, creamy burrata cheese, micro basil, and cold-pressed olive oil.</p>
+                </li>
+              </ul>
+            </div>
+
+            <div *ngSwitchCase="'mains'">
+              <h4>Gourmet Entrées</h4>
+              <ul class="menu-list">
+                <li>
+                  <div class="menu-item-title">Teppanyaki Wagyu Beef Sirloin</div>
+                  <p>Premium marbled Wagyu sirloin steak served with baby carrots, shiitake mushrooms, and garlic soy dip.</p>
+                </li>
+                <li>
+                  <div class="menu-item-title">Lobster Thermidor</div>
+                  <p>Atlantic lobster tail cooked in a rich cognac-cream sauce, topped with Gruyère cheese, served with wild rice.</p>
+                </li>
+                <li>
+                  <div class="menu-item-title">Traditional Chicken Biryani (Dhaka Style)</div>
+                  <p>Fragrant basmati rice cooked with saffron, tender chicken, and warm spices, served with mint raita.</p>
+                </li>
+              </ul>
+            </div>
+
+            <div *ngSwitchCase="'desserts'">
+              <h4>Sweet Delights</h4>
+              <ul class="menu-list">
+                <li>
+                  <div class="menu-item-title">Matcha Lava Cake</div>
+                  <p>Warm molten Uji matcha cake served with a scoop of vanilla bean gelato.</p>
+                </li>
+                <li>
+                  <div class="menu-item-title">Chocolate Truffle Tart</div>
+                  <p>72% dark Belgian chocolate ganache in a crispy pastry crust, garnished with edible gold leaf.</p>
+                </li>
+                <li>
+                  <div class="menu-item-title">Artisanal Cheese Board</div>
+                  <p>A selection of fine European cheeses served with crackers, raw honey, and grapes.</p>
+                </li>
+              </ul>
+            </div>
+
+            <div *ngSwitchCase="'wines'">
+              <h4>Curated Cabin Cellar</h4>
+              <ul class="menu-list">
+                <li>
+                  <div class="menu-item-title">Krug Grande Cuvée Champagne</div>
+                  <p>Outstanding champagne with notes of toasted nuts, lemon, and ripe orchard fruits.</p>
+                </li>
+                <li>
+                  <div class="menu-item-title">Château Margaux 2015 Bordeaux</div>
+                  <p>A full-bodied, complex red wine with elegant notes of black currants, sweet spices, and cedar.</p>
+                </li>
+                <li>
+                  <div class="menu-item-title">Premium Junmai Daiginjo Sake</div>
+                  <p>Ultra-pure Japanese sake brewed in Niigata, offering a floral aroma and crisp melon finish.</p>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="card glass-card">
+          <h3>Special Dietary Request Policy</h3>
+          <p>We offer a comprehensive selection of special meals, including Halal, Kosher, Diabetic, Vegan, and Gluten-Free options. Special dietary requirements can be requested directly in the <strong>My Bookings</strong> section up to 24 hours prior to departure.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. CARGO SERVICES -->
+    <section *ngSwitchCase="'cargo'" class="info-section fade-in">
+      <div class="section-hero">
+        <span class="hero-subtitle">VOLANT GLOBAL CARGO</span>
+        <h1 class="hero-title">Cargo Services</h1>
+        <p class="hero-desc">Fast, secure, and temperature-controlled air freight solutions connecting major international industries.</p>
+      </div>
+
+      <div class="section-body">
+        <div class="grid-layout cols-2 gap-6 mb-6">
+          <div class="card glass-card">
+            <h3>Global Logistics Infrastructure</h3>
+            <p>Volant Cargo operates a fleet of dedicated Boeing 777 Freighters and utilizes the cargo belly capacity of all commercial passenger flights. This allows us to offer express shipping, secure transit, and bulk cargo solutions to over 200 airports worldwide.</p>
+            <p>Our primary cargo hubs are located at Tokyo Narita (NRT) and Hazrat Shahjalal (DAC), handling regular cargo flights for global supply chains.</p>
+          </div>
+          
+          <div class="card glass-card logistics-card">
+            <h3>Specialized Air Cargo Solutions</h3>
+            <ul class="bullets-list">
+              <li><strong>PharmaTemp</strong>: Active temperature-controlled containers for vaccines and life sciences.</li>
+              <li><strong>Volant SafePet</strong>: Climate-controlled, ventilated shipping areas for family pets and livestock.</li>
+              <li><strong>Secured Vault</strong>: Reinforced container transit for high-value cargo, artwork, and precious metals.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card glass-card">
+          <h3>Contact Cargo Dispatch</h3>
+          <p>For charter flight booking queries or cargo pricing tables, contact our operations desk at <a href="mailto:cargo&#64;volantairlines.com">cargo&#64;volantairlines.com</a> or call our HQ at {{ contactPhone }}.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 9. CUSTOMER SERVICE -->
+    <section *ngSwitchCase="'customer-service'" class="info-section fade-in">
+      <div class="section-hero">
+        <span class="hero-subtitle">HERE FOR YOU 24/7</span>
+        <h1 class="hero-title">Customer Service</h1>
+        <p class="hero-desc">Access booking changes, refunds, and support inquiries. We are here to help you around the clock.</p>
+      </div>
+
+      <div class="section-body">
+        <div class="grid-layout cols-2 gap-6">
+          <div class="cs-info">
+            <h3>Support Channels</h3>
+            <p>Whether you require assistance with flight modifications, award miles, or specific airport arrangements, our global support network is ready to assist.</p>
+
+            <div class="card glass-card contact-card mb-4 mt-4">
+              <h5>Global Headquarters</h5>
+              <p>📍 Volant Towers, Shinjuku, {{ hqLocation }}</p>
+              <p>📞 Phone support: <strong>{{ contactPhone }}</strong> (General Inquiries)</p>
+              <p>✉️ General Email: <a href="mailto:support&#64;volantairlines.com">support&#64;volantairlines.com</a></p>
+            </div>
+
+            <h4>Frequently Asked Questions</h4>
+            <div class="faq-list">
+              <div class="faq-item">
+                <h6>Can I change my ticket online?</h6>
+                <p>Yes, tickets can be modified directly in the "My Bookings" section up to 3 hours prior to departure, depending on class restrictions.</p>
+              </div>
+              <div class="faq-item">
+                <h6>How do I claim flight delay compensation?</h6>
+                <p>Please contact our Customer Relations department or submit an inquiry form with your booking reference.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="cs-form-panel card glass-card">
+            <h3>Submit a Support Ticket</h3>
+            <p class="sub-text">We aim to respond to all web inquiries within 12 hours.</p>
+
+            <form (ngSubmit)="submitCustomerForm()" *ngIf="!customerSubmitted" class="support-form">
+              <div class="form-group">
+                <label for="csubject">Subject</label>
+                <input type="text" id="csubject" name="subject" [(ngModel)]="customerForm.subject" class="form-input" placeholder="e.g. Flight Delay Claim" required>
+              </div>
+
+              <div class="form-group">
+                <label for="cbref">Booking Reference (PNR)</label>
+                <input type="text" id="cbref" name="bookingRef" [(ngModel)]="customerForm.bookingRef" class="form-input" placeholder="e.g. AB12CD">
+              </div>
+
+              <div class="form-group">
+                <label for="cmessage">Message Description</label>
+                <textarea id="cmessage" name="message" [(ngModel)]="customerForm.message" class="form-input" rows="5" placeholder="Describe your request in detail..." required></textarea>
+              </div>
+
+              <button type="submit" class="btn btn-primary w-full mt-4">Submit Support Ticket</button>
+            </form>
+
+            <div class="success-alert" *ngIf="customerSubmitted">
+              <span class="alert-icon">✓</span>
+              <h4>Support Ticket Created!</h4>
+              <p>Your support ticket has been registered. An email confirmation has been sent, and an agent will contact you shortly.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10. SPECIAL ASSISTANCE -->
+    <section *ngSwitchCase="'special-assistance'" class="info-section fade-in">
+      <div class="section-hero">
+        <span class="hero-subtitle">ACCESSIBLE TRAVEL FOR ALL</span>
+        <h1 class="hero-title">Special Assistance</h1>
+        <p class="hero-desc">Request wheelchair services, medical clearance guidelines, and register unaccompanied minor travels.</p>
+      </div>
+
+      <div class="section-body">
+        <div class="grid-layout cols-2 gap-6 mb-6">
+          <div class="card glass-card">
+            <h3>Mobility & Wheelchair Requests</h3>
+            <p>Volant Airlines provides comprehensive terminal assistance for passengers with reduced mobility. We offer ramp wheelchairs, cabin wheelchairs, and help with boarding/deplaning at Haneda, Narita, Dhaka, and all other destination terminals.</p>
+            <p>You can request wheelchair assistance during your booking process, or by contacting our hotline at least 48 hours prior to your flight departure.</p>
+          </div>
+          
+          <div class="card glass-card">
+            <h3>Unaccompanied Minors (UM)</h3>
+            <p>Children aged 5 to 11 traveling alone are eligible for our dedicated Unaccompanied Minor service. Our trained staff will accompany the child from check-in, guide them through security and passport control, look after them during the flight, and safely hand them over to the designated guardian at the destination airport.</p>
+          </div>
+        </div>
+
+        <div class="card glass-card">
+          <h3>Medical Clearances</h3>
+          <p>Passengers traveling with complex medical conditions, requiring oxygen concentrators, or in late stages of pregnancy may require a Medical Information Form (MEDIF) completed by their doctor. Please download the MEDIF form or contact our customer support at {{ contactPhone }} for more assistance.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 11. BAGGAGE INFORMATION -->
+    <section *ngSwitchCase="'baggage-info'" class="info-section fade-in">
+      <div class="section-hero">
+        <span class="hero-subtitle">VOLANT BAGGAGE PROTOCOL</span>
+        <h1 class="hero-title">Baggage Information</h1>
+        <p class="hero-desc">Calculate your free baggage allowance, review rules for oversized items, and report delayed bags.</p>
+      </div>
+
+      <div class="section-body">
+        <div class="grid-layout cols-2 gap-6 mb-6">
+          <!-- Baggage Calculator Widget -->
+          <div class="baggage-calculator card glass-card">
+            <h3>Baggage Allowance Calculator</h3>
+            <p class="sub-text">Enter your cabin class and weight details to check limits.</p>
+            
+            <div class="form-group">
+              <label>Cabin Class</label>
+              <select name="baggageClass" [(ngModel)]="baggageClass" (change)="calculateBaggage()" class="form-input">
+                <option value="ECONOMY">Economy Class</option>
+                <option value="BUSINESS">Premium Business / First Class</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Number of Bags</label>
+              <input type="number" name="bagCount" [(ngModel)]="bagCount" (input)="calculateBaggage()" min="0" max="10" class="form-input">
+            </div>
+
+            <div class="form-group">
+              <label>Weight Per Bag (kg)</label>
+              <input type="number" name="bagWeight" [(ngModel)]="bagWeight" (input)="calculateBaggage()" min="1" max="50" class="form-input">
+            </div>
+
+            <div class="bag-calc-result" [ngClass]="bagStatusClass" *ngIf="bagResult">
+              <p>{{ bagResult }}</p>
+            </div>
+          </div>
+
+          <div class="baggage-rules card glass-card">
+            <h3>General Baggage Rules</h3>
+            <ul class="bullets-list">
+              <li><strong>Cabin Baggage</strong>: 1 personal item (fits under the seat) + 1 overhead cabin bag (max 56 x 36 x 23 cm, max 10kg total).</li>
+              <li><strong>Restricted Items</strong>: Lithium batteries, aerosols, matches, and flammable liquids are strictly prohibited in checked baggage.</li>
+              <li><strong>Sporting Equipment</strong>: Bicycles, golf sets, and ski equipment are counted as standard check-in bags if they are under 23kg and 158cm total dimensions.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card glass-card">
+          <h3>Lost or Delayed Baggage</h3>
+          <p>If your checked baggage did not arrive on your flight, please file a report at the airport Baggage Service Desk immediately. You will receive a Property Irregularity Report (PIR) and code. For online updates, you can email our baggage desk at <a href="mailto:baggage&#64;volantairlines.com">baggage&#64;volantairlines.com</a>.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 12. EMAIL SUPPORT -->
+    <section *ngSwitchCase="'email-support'" class="info-section fade-in">
+      <div class="section-hero">
+        <span class="hero-subtitle">DIRECT INQUIRIES</span>
+        <h1 class="hero-title">Email Support</h1>
+        <p class="hero-desc">Send inquiries directly to our operational departments. We respond within 12 hours.</p>
+      </div>
+
+      <div class="section-body">
+        <div class="grid-layout cols-2 gap-6">
+          <div class="email-directory">
+            <h3>Corporate Email Directory</h3>
+            <p>For faster response times, please email the department matching your specific inquiry:</p>
+            
+            <div class="directory-list">
+              <div class="directory-item card glass-card">
+                <h5>General Booking & Support</h5>
+                <p>✉️ <a href="mailto:support&#64;volantairlines.com">support&#64;volantairlines.com</a></p>
+              </div>
+              <div class="directory-item card glass-card">
+                <h5>Volant Club & Elite Awards</h5>
+                <p>✉️ <a href="mailto:club&#64;volantairlines.com">club&#64;volantairlines.com</a></p>
+              </div>
+              <div class="directory-item card glass-card">
+                <h5>Media & Press Relations</h5>
+                <p>✉️ <a href="mailto:press&#64;volantairlines.com">press&#64;volantairlines.com</a></p>
+              </div>
+            </div>
+          </div>
+
+          <div class="email-composer-panel card glass-card">
+            <h3>Compose Web Email</h3>
+            <p class="sub-text">Write to us directly through this page.</p>
+
+            <form (ngSubmit)="submitEmailForm()" *ngIf="!emailSubmitted" class="email-form">
+              <div class="form-group">
+                <label for="ecat">Department / Topic</label>
+                <select id="ecat" name="category" [(ngModel)]="emailForm.category" class="form-input">
+                  <option value="Booking Inquiry">Booking Inquiry</option>
+                  <option value="Volant Club Miles">Volant Club Miles</option>
+                  <option value="Baggage / Lost Item">Baggage / Lost Item</option>
+                  <option value="Corporate / Sales">Corporate / Sales</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="ename">Your Name</label>
+                <input type="text" id="ename" name="name" [(ngModel)]="emailForm.name" class="form-input" placeholder="e.g. John Doe" required>
+              </div>
+
+              <div class="form-group">
+                <label for="eemail">Your Email</label>
+                <input type="email" id="eemail" name="email" [(ngModel)]="emailForm.email" class="form-input" placeholder="e.g. john&#64;domain.com" required>
+              </div>
+
+              <div class="form-group">
+                <label for="eref">Booking Ref (Optional)</label>
+                <input type="text" id="eref" name="ref" [(ngModel)]="emailForm.ref" class="form-input" placeholder="e.g. AB12CD">
+              </div>
+
+              <div class="form-group">
+                <label for="emessage">Message Body</label>
+                <textarea id="emessage" name="message" [(ngModel)]="emailForm.message" class="form-input" rows="4" placeholder="Write your message here..." required></textarea>
+              </div>
+
+              <button type="submit" class="btn btn-primary w-full mt-4">Send Email</button>
+            </form>
+
+            <div class="success-alert" *ngIf="emailSubmitted">
+              <span class="alert-icon">✓</span>
+              <h4>Email Dispatched!</h4>
+              <p>Your message has been sent to support&#64;volantairlines.com. A support representative will reply to your inbox shortly.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 13. CALL SUPPORT -->
+    <section *ngSwitchCase="'call-support'" class="info-section fade-in">
+      <div class="section-hero">
+        <span class="hero-subtitle">VOICE ASSISTANCE</span>
+        <h1 class="hero-title">Call Support</h1>
+        <p class="hero-desc">Dial our global office lines. Dedicated agents are standing by to assist with your bookings.</p>
+      </div>
+
+      <div class="section-body">
+        <div class="card glass-card call-hero-card mb-6">
+          <span class="badge online">Active Now</span>
+          <h3>Global Hotline (Tokyo Office)</h3>
+          <p class="tel-number">{{ contactPhone }}</p>
+          <p class="hours">Available 24 hours a day, 7 days a week for booking, refund, and luggage support.</p>
+          <a [href]="'tel:' + contactPhone" class="btn btn-primary mt-3 inline-block">Click to Call Now</a>
+        </div>
+
+        <h3 class="mb-4">Regional Contact Numbers</h3>
+        <div class="grid-layout cols-2 gap-4">
+          <div class="call-card card glass-card">
+            <h5>Japan Regional Support</h5>
+            <p class="loc">HQ - Tokyo</p>
+            <p class="phone">📞 {{ contactPhone }}</p>
+            <p class="lang">Languages: Japanese, English (24/7)</p>
+          </div>
+          <div class="call-card card glass-card">
+            <h5>Bangladesh Regional Support</h5>
+            <p class="loc">Dhaka Hub Office</p>
+            <p class="phone">📞 +88028901720</p>
+            <p class="lang">Languages: Bengali, English (08:00 - 22:00 BST)</p>
+          </div>
+          <div class="call-card card glass-card">
+            <h5>United States Regional Support</h5>
+            <p class="loc">New York Desk</p>
+            <p class="phone">📞 +18005558652</p>
+            <p class="lang">Languages: English, Spanish (24/7)</p>
+          </div>
+          <div class="call-card card glass-card">
+            <h5>United Kingdom Regional Support</h5>
+            <p class="loc">London Heathrow Office</p>
+            <p class="phone">📞 +442079460192</p>
+            <p class="lang">Languages: English (06:00 - 20:00 GMT)</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>

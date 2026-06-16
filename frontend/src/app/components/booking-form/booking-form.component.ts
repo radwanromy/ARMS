@@ -108,54 +108,93 @@ import { Flight, Seat } from '../../models/flight.model';
 
         <!-- Sidebar Flight Details Panel -->
         <div class="flight-detail-card glass-panel">
-          <h3 class="side-title">Your Flight</h3>
+          <h3 class="side-title">Your Flights</h3>
           
           <div class="flight-meta">
-            <div class="meta-row">
-              <span class="airline-badge">{{ flight.airline }}</span>
-              <span class="flight-no">{{ flight.flightNumber }}</span>
-            </div>
-            
-            <div class="route-display">
-              <div class="station">
-                <span class="code">{{ flight.origin }}</span>
-                <span class="label">Origin</span>
+            <!-- Outbound Flight Details -->
+            <div class="flight-leg-details">
+              <span class="flight-leg-title">Outbound Voyage</span>
+              <div class="meta-row">
+                <span class="airline-badge">{{ flight.airline }}</span>
+                <span class="flight-no">{{ flight.flightNumber }}</span>
               </div>
-              <div class="separator">&rarr;</div>
-              <div class="station">
-                <span class="code">{{ flight.destination }}</span>
-                <span class="label">Destination</span>
+              
+              <div class="route-display">
+                <div class="station">
+                  <span class="code">{{ flight.origin }}</span>
+                  <span class="label">Origin</span>
+                </div>
+                <div class="separator">&rarr;</div>
+                <div class="station">
+                  <span class="code">{{ flight.destination }}</span>
+                  <span class="label">Destination</span>
+                </div>
+              </div>
+
+              <div class="time-meta">
+                <div>
+                  <span class="meta-label">Departure</span>
+                  <span class="meta-val">{{ formatDateTime(flight.departureTime) }}</span>
+                </div>
+                <div>
+                  <span class="meta-label">Arrival</span>
+                  <span class="meta-val">{{ formatDateTime(flight.arrivalTime) }}</span>
+                </div>
+              </div>
+
+              <div class="seat-meta mt-2">
+                <div class="meta-item">
+                  <span class="meta-label">Seat Chosen</span>
+                  <span class="meta-val seat-badge">{{ selectedSeat.column }}{{ selectedSeat.row }}</span>
+                </div>
               </div>
             </div>
 
-            <div class="time-meta">
-              <div>
-                <span class="meta-label">Departure</span>
-                <span class="meta-val">{{ formatDateTime(flight.departureTime) }}</span>
+            <!-- Return Flight Details (if Round Trip) -->
+            <div class="flight-leg-details mt-4" *ngIf="returnFlight && selectedReturnSeat">
+              <span class="flight-leg-title">Return Voyage</span>
+              <div class="meta-row">
+                <span class="airline-badge">{{ returnFlight.airline }}</span>
+                <span class="flight-no">{{ returnFlight.flightNumber }}</span>
               </div>
-              <div>
-                <span class="meta-label">Arrival</span>
-                <span class="meta-val">{{ formatDateTime(flight.arrivalTime) }}</span>
+              
+              <div class="route-display">
+                <div class="station">
+                  <span class="code">{{ returnFlight.origin }}</span>
+                  <span class="label">Origin</span>
+                </div>
+                <div class="separator">&rarr;</div>
+                <div class="station">
+                  <span class="code">{{ returnFlight.destination }}</span>
+                  <span class="label">Destination</span>
+                </div>
+              </div>
+
+              <div class="time-meta">
+                <div>
+                  <span class="meta-label">Departure</span>
+                  <span class="meta-val">{{ formatDateTime(returnFlight.departureTime) }}</span>
+                </div>
+                <div>
+                  <span class="meta-label">Arrival</span>
+                  <span class="meta-val">{{ formatDateTime(returnFlight.arrivalTime) }}</span>
+                </div>
+              </div>
+
+              <div class="seat-meta mt-2">
+                <div class="meta-item">
+                  <span class="meta-label">Seat Chosen</span>
+                  <span class="meta-val seat-badge">{{ selectedReturnSeat.column }}{{ selectedReturnSeat.row }}</span>
+                </div>
               </div>
             </div>
 
             <div class="divider"></div>
 
-            <div class="seat-meta">
-              <div class="meta-item">
-                <span class="meta-label">Class</span>
-                <span class="meta-val capitalize">{{ selectedSeat.class }}</span>
-              </div>
-              <div class="meta-item">
-                <span class="meta-label">Seat Chosen</span>
-                <span class="meta-val seat-badge">{{ selectedSeat.column }}{{ selectedSeat.row }}</span>
-              </div>
-            </div>
-
             <div class="price-summary">
               <div class="meta-item">
-                <span class="meta-label">Price per seat</span>
-                <span class="meta-val">\${{ selectedSeat.price }}</span>
+                <span class="meta-label">Seat Class</span>
+                <span class="meta-val capitalize">{{ selectedSeat.class }}</span>
               </div>
               <div class="meta-item">
                 <span class="meta-label">Travelers</span>
@@ -164,7 +203,7 @@ import { Flight, Seat } from '../../models/flight.model';
               <div class="divider"></div>
               <div class="total-row">
                 <span class="total-lbl">Total Amount</span>
-                <span class="total-val">\${{ selectedSeat.price * travelersCount }}</span>
+                <span class="total-val">\${{ calculateTotal() }}</span>
               </div>
             </div>
           </div>
@@ -175,7 +214,7 @@ import { Flight, Seat } from '../../models/flight.model';
         <div class="glass-panel error-card">
           <h4>No flight state found</h4>
           <p>Please return to the search screen to select a flight path.</p>
-          <button class="btn btn-primary" routerLink="/search">Return to Search</button>
+          <button type="button" class="btn btn-primary" routerLink="/search">Return to Search</button>
         </div>
       </ng-template>
     </div>
@@ -373,11 +412,27 @@ import { Flight, Seat } from '../../models/flight.model';
       max-width: 500px;
       margin: 60px auto;
     }
+    .flight-leg-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--primary);
+      font-weight: 700;
+      margin-bottom: 8px;
+      display: block;
+    }
+    .flight-leg-details {
+      padding: 8px 0;
+      border-bottom: 1px dashed rgba(255,255,255,0.06);
+    }
+    .mt-2 { margin-top: 8px; }
   `]
 })
 export class BookingFormComponent implements OnInit {
   flight!: Flight;
   selectedSeat!: Seat;
+  returnFlight: Flight | null = null;
+  selectedReturnSeat: Seat | null = null;
   searchCriteria: any;
   travelersCount = 1;
 
@@ -394,6 +449,8 @@ export class BookingFormComponent implements OnInit {
     if (navigation?.extras.state) {
       this.flight = navigation.extras.state['flight'];
       this.selectedSeat = navigation.extras.state['selectedSeat'];
+      this.returnFlight = navigation.extras.state['returnFlight'] || null;
+      this.selectedReturnSeat = navigation.extras.state['selectedReturnSeat'] || null;
       this.searchCriteria = navigation.extras.state['searchCriteria'];
       this.travelersCount = this.searchCriteria?.passengers || 1;
     }
@@ -426,6 +483,14 @@ export class BookingFormComponent implements OnInit {
     return this.bookingForm.get('passengers') as FormArray;
   }
 
+  calculateTotal(): number {
+    let price = this.selectedSeat.price;
+    if (this.selectedReturnSeat) {
+      price += this.selectedReturnSeat.price;
+    }
+    return price * this.travelersCount;
+  }
+
   onSubmit(): void {
     this.submitted = true;
 
@@ -434,25 +499,49 @@ export class BookingFormComponent implements OnInit {
     }
 
     this.loading = true;
-    const requestPayload = {
+
+    const passengerData = this.bookingForm.value.passengers.map((p: any) => ({
+      fullName: `${p.firstName.trim()} ${p.lastName.trim()}`,
+      dateOfBirth: p.dateOfBirth,
+      passportNumber: p.passportNumber,
+      nationality: p.nationality
+    }));
+
+    const outboundPayload = {
       flightId: this.flight.id!,
       seatNumber: this.selectedSeat.column + this.selectedSeat.row,
       seatClass: this.selectedSeat.class,
-      passengers: this.bookingForm.value.passengers.map((p: any) => ({
-        fullName: `${p.firstName.trim()} ${p.lastName.trim()}`,
-        dateOfBirth: p.dateOfBirth,
-        passportNumber: p.passportNumber,
-        nationality: p.nationality
-      }))
+      passengers: passengerData
     };
 
-    this.bookingService.makeReservation(requestPayload)
+    this.bookingService.makeReservation(outboundPayload)
       .subscribe({
-        next: (reservation) => {
-          this.router.navigate(['/payment', reservation.bookingReference]);
+        next: (outboundReservation) => {
+          if (this.returnFlight && this.selectedReturnSeat) {
+            const returnPayload = {
+              flightId: this.returnFlight.id!,
+              seatNumber: this.selectedReturnSeat.column + this.selectedReturnSeat.row,
+              seatClass: this.selectedReturnSeat.class,
+              passengers: passengerData
+            };
+            
+            this.bookingService.makeReservation(returnPayload).subscribe({
+              next: (returnReservation) => {
+                this.router.navigate(['/payment', outboundReservation.bookingReference], {
+                  state: { returnBookingReference: returnReservation.bookingReference }
+                });
+              },
+              error: (err) => {
+                console.error('Return reservation failed', err);
+                this.loading = false;
+              }
+            });
+          } else {
+            this.router.navigate(['/payment', outboundReservation.bookingReference]);
+          }
         },
         error: (err) => {
-          console.error('Reservation failed', err);
+          console.error('Outbound reservation failed', err);
           this.loading = false;
         }
       });
