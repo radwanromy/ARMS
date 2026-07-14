@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from './auth.service';
+import { API_BASE } from '../config/api.config';
 
 export type ColorTheme = 'light' | 'mid' | 'dark';
 
@@ -79,7 +80,7 @@ export class ThemeService {
     if (user) {
       user.theme = theme;
       // Trigger a profile update on the backend
-      this.http.put('http://localhost:8080/api/auth/profile', user).subscribe({
+      this.http.put(`${API_BASE}/api/auth/profile`, user).subscribe({
         next: (updatedUser: any) => {
           localStorage.setItem('currentUser', JSON.stringify(updatedUser));
         },

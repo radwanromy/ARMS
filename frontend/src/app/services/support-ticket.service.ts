@@ -3,13 +3,14 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { SupportTicket, BookingAuditLog } from '../models/support.model';
 import { Booking } from '../models/booking.model';
+import { API_BASE } from '../config/api.config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SupportTicketService {
-  private apiTicketUrl = 'http://localhost:8080/api/support/tickets';
-  private apiResUrl = 'http://localhost:8080/api/reservations';
+  private apiTicketUrl = `${API_BASE}/api/support/tickets`;
+  private apiResUrl = `${API_BASE}/api/reservations`;
 
   constructor(private http: HttpClient) { }
 

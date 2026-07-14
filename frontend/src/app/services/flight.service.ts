@@ -2,12 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Flight, SearchCriteria } from '../models/flight.model';
+import { API_BASE } from '../config/api.config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class FlightService {
-  private apiUrl = 'http://localhost:8080/api/flights';
+  private apiUrl = `${API_BASE}/api/flights`;
 
   constructor(private http: HttpClient) { }
 

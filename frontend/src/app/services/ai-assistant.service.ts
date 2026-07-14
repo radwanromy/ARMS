@@ -2,12 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AIMessage } from '../models/support.model';
+import { API_BASE } from '../config/api.config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AIAssistantService {
-  private apiUrl = 'http://localhost:8080/api/ai/chat';
+  private apiUrl = `${API_BASE}/api/ai/chat`;
 
   constructor(private http: HttpClient) {}
 

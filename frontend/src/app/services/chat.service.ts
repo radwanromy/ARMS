@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, Subject, interval, Subscription } from 'rxjs';
 import { startWith, switchMap } from 'rxjs/operators';
 import { ChatMessage } from '../models/support.model';
+import { API_BASE, WS_BASE } from '../config/api.config';
 
 @Injectable({
   providedIn: 'root'
@@ -12,7 +13,7 @@ export class ChatService {
   private messageSubject = new Subject<ChatMessage>();
   public messages$: Observable<ChatMessage> = this.messageSubject.asObservable();
   
-  private historyUrl = 'http://localhost:8080/api/chat/history';
+  private historyUrl = `${API_BASE}/api/chat/history`;
   private pollingSubscription: Subscription | null = null;
 
   constructor(private http: HttpClient) {}
@@ -26,7 +27,7 @@ export class ChatService {
   connect(bookingRef: string): void {
     this.disconnect();
 
-    const wsUrl = `ws://localhost:8080/chat-socket?bookingRef=${bookingRef}`;
+    const wsUrl = `${WS_BASE}/chat-socket?bookingRef=${bookingRef}`;
     logInfo('Connecting to Chat WebSocket:', wsUrl);
 
     try {

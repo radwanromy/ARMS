@@ -3,12 +3,13 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { Booking, ReservationRequest } from '../models/booking.model';
 import { BRANDING_CONFIG } from '../core/config/branding.config';
+import { API_BASE } from '../config/api.config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class BookingService {
-  private apiUrl = 'http://localhost:8080/api/reservations';
+  private apiUrl = `${API_BASE}/api/reservations`;
 
   constructor(private http: HttpClient) { }
 
@@ -29,11 +30,11 @@ export class BookingService {
   }
 
   getAllReservations(): Observable<Booking[]> {
-    return this.http.get<Booking[]>('http://localhost:8080/api/admin/reservations');
+    return this.http.get<Booking[]>(`${API_BASE}/api/admin/reservations`);
   }
 
   updateReservationStatus(bookingRef: string, status: string): Observable<Booking> {
-    return this.http.patch<Booking>(`http://localhost:8080/api/admin/reservations/${bookingRef}/status?status=${status}`, {});
+    return this.http.patch<Booking>(`${API_BASE}/api/admin/reservations/${bookingRef}/status?status=${status}`, {});
   }
 
   generateTicket(booking: Booking, cardNumber?: string, transactionId?: string): Observable<Blob> {

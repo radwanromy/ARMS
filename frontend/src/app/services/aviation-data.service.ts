@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
+import { API_BASE } from '../config/api.config';
 
 export interface CountryInfo {
   name: string;
@@ -206,65 +207,65 @@ export class AviationDataService {
 
   // --- API Lookup Endpoints ---
   searchAirports(query: string): Observable<any[]> {
-    return this.http.get<any[]>(`http://localhost:8080/api/airports/search?query=${query}`);
+    return this.http.get<any[]>(`${API_BASE}/api/airports/search?query=${query}`);
   }
 
   searchCountries(query: string): Observable<any[]> {
-    return this.http.get<any[]>(`http://localhost:8080/api/countries/search?query=${query}`);
+    return this.http.get<any[]>(`${API_BASE}/api/countries/search?query=${query}`);
   }
 
   searchAirlines(query: string): Observable<any[]> {
-    return this.http.get<any[]>(`http://localhost:8080/api/airlines/search?query=${query}`);
+    return this.http.get<any[]>(`${API_BASE}/api/airlines/search?query=${query}`);
   }
 
   // --- Country Admin Management ---
   getCountries(): Observable<any[]> {
-    return this.http.get<any[]>(`http://localhost:8080/api/countries`);
+    return this.http.get<any[]>(`${API_BASE}/api/countries`);
   }
 
   createCountry(country: any): Observable<any> {
-    return this.http.post<any>(`http://localhost:8080/api/countries`, country);
+    return this.http.post<any>(`${API_BASE}/api/countries`, country);
   }
 
   updateCountry(id: number, country: any): Observable<any> {
-    return this.http.put<any>(`http://localhost:8080/api/countries/${id}`, country);
+    return this.http.put<any>(`${API_BASE}/api/countries/${id}`, country);
   }
 
   deleteCountry(id: number): Observable<any> {
-    return this.http.delete<any>(`http://localhost:8080/api/countries/${id}`);
+    return this.http.delete<any>(`${API_BASE}/api/countries/${id}`);
   }
 
   // --- Airport Admin Management ---
   getAirports(): Observable<any[]> {
-    return this.http.get<any[]>(`http://localhost:8080/api/airports`);
+    return this.http.get<any[]>(`${API_BASE}/api/airports`);
   }
 
   createAirport(airport: any): Observable<any> {
-    return this.http.post<any>(`http://localhost:8080/api/airports`, airport);
+    return this.http.post<any>(`${API_BASE}/api/airports`, airport);
   }
 
   updateAirport(id: number, airport: any): Observable<any> {
-    return this.http.put<any>(`http://localhost:8080/api/airports/${id}`, airport);
+    return this.http.put<any>(`${API_BASE}/api/airports/${id}`, airport);
   }
 
   deleteAirport(id: number): Observable<any> {
-    return this.http.delete<any>(`http://localhost:8080/api/airports/${id}`);
+    return this.http.delete<any>(`${API_BASE}/api/airports/${id}`);
   }
 
   // --- Airline Admin Management ---
   getAirlines(): Observable<any[]> {
-    return this.http.get<any[]>(`http://localhost:8080/api/airlines`);
+    return this.http.get<any[]>(`${API_BASE}/api/airlines`);
   }
 
   createAirline(airline: any): Observable<any> {
-    return this.http.post<any>(`http://localhost:8080/api/airlines`, airline);
+    return this.http.post<any>(`${API_BASE}/api/airlines`, airline);
   }
 
   updateAirline(id: number, airline: any): Observable<any> {
-    return this.http.put<any>(`http://localhost:8080/api/airlines/${id}`, airline);
+    return this.http.put<any>(`${API_BASE}/api/airlines/${id}`, airline);
   }
 
   deleteAirline(id: number): Observable<any> {
-    return this.http.delete<any>(`http://localhost:8080/api/airlines/${id}`);
+    return this.http.delete<any>(`${API_BASE}/api/airlines/${id}`);
   }
 }
